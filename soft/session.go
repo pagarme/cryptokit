@@ -2,10 +2,7 @@ package soft
 
 import (
 	"errors"
-	"crypto/aes"
-	"crypto/des"
 	"crypto/rand"
-	"crypto/cipher"
 	"encoding/json"
 	"github.com/boltdb/bolt"
 	"github.com/pagarme/cryptokit"
@@ -121,7 +118,24 @@ func (s *Session) Derive(mech cryptokit.Mechanism, key cryptokit.Key, attributes
 		return nil, errors.New("Key can't be used for derivation")
 	}
 
-	return nil, nil
+	if err := s.checkConsistency(attributes); err != nil {
+		return nil, err
+	}
+
+	data := make([]byte, attributes.Length)
+
+	switch mech.(type) {
+	case *cryptokit.RandomMechanism:
+		_, err := rand.Read(data)
+
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("Unsupported mechanism")
+	}
+
+	return s.createKey(attributes, data)
 }
 
 func (s *Session) Close() error {
@@ -164,66 +178,4 @@ func (s *Session) decryptCore(mech cryptokit.Mechanism, key cryptokit.Key, in []
 	}
 
 	return nil, errors.New("Unknown mechanism")
-}
-
-func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {
-	impl, err := getImplementation(mech, key)
-
-	if err != nil {
-		return nil, err
-	}
-
-	c, err := getBlockImplementation(mech, impl, encrypt)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(in) % c.BlockSize() != 0 {
-		return nil, errors.New("Input must be a multiple of block size")
-	}
-
-	out := make([]byte, len(in))
-
-	c.CryptBlocks(out, in)
-
-	return out, nil
-}
-
-func getImplementation(mech cryptokit.BlockCipher, key cryptokit.Key) (cipher.Block, error) {
-	skey := key.(*Key)
-
-	switch mech.(type) {
-	case *cryptokit.AesMechanism:
-		return aes.NewCipher(skey.data)
-	case *cryptokit.DesMechanism:
-		return des.NewCipher(skey.data)
-	}
-
-	return nil, errors.New("Unknown mechanism")
-}
-
-func getBlockImplementation(mech cryptokit.BlockCipher, impl cipher.Block, encrypt bool) (cipher.BlockMode, error) {
-	var c cipher.BlockMode
-
-	iv := mech.BlockIV()
-
-	if iv == nil {
-		iv = make([]byte, impl.BlockSize())
-	}
-
-	switch mech.BlockCipherMode() {
-	case cryptokit.CBC:
-		if encrypt {
-			c = cipher.NewCBCEncrypter(impl, iv)
-		} else {
-			c = cipher.NewCBCDecrypter(impl, iv)
-		}
-	case cryptokit.ECB:
-		c = &ecbBlockMode{impl, encrypt}
-	default:
-		return nil, errors.New("Unknown block cipher mode")
-	}
-
-	return c, nil
 }
