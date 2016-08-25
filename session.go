@@ -8,7 +8,7 @@ type Session interface {
 	Translate(mech Mechanism, inKey Key, in []byte, outKey Key) ([]byte, error)
 
 	Wrap(mech Mechanism, key, kek Key) ([]byte, error)
-	Unwrap(mech Mechanism, key []byte, kek Key) (Key, error)
+	Unwrap(mech Mechanism, key []byte, kek Key, attributes KeyAttributes) (Key, error)
 
 	Generate(mech Mechanism, attributes KeyAttributes) (Key, error)
 	Derive(mech Mechanism, key Key, attributes KeyAttributes) (Key, error)
