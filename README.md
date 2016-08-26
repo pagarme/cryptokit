@@ -5,6 +5,7 @@ Golang crypto wrapper with pluggable providers
 
 ## Documentation
 
-[](https://godoc.org/github.com/pagarme/cryptokit)
+* [Cryptokit](https://godoc.org/github.com/pagarme/cryptokit)
+* [Soft Provider](https://godoc.org/github.com/pagarme/cryptokit/soft)
 
 
