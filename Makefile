@@ -1,7 +1,10 @@
 
 .PHONY: test
 
-test:
+deps:
+	@go get -t ./...
+
+test: deps
 	@echo Running tests
 	$(eval PKGS := $(shell go list ./... | grep -v /vendor/))
 	$(eval PKGS_DELIM := $(shell echo $(PKGS) | sed -e 's/ /,/g'))
