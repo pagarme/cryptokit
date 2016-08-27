@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/boltdb/bolt"
 	"github.com/pagarme/cryptokit"
+	"github.com/pagarme/cryptokit/soft/dukpt"
 )
 
 type Session struct {
@@ -109,9 +110,7 @@ func (s *Session) Generate(mech cryptokit.Mechanism, attributes cryptokit.KeyAtt
 
 	switch mech.(type) {
 	case cryptokit.Random:
-		_, err := rand.Read(data)
-
-		if err != nil {
+		if _, err := rand.Read(data); err != nil {
 			return nil, err
 		}
 	default:
@@ -122,6 +121,8 @@ func (s *Session) Generate(mech cryptokit.Mechanism, attributes cryptokit.KeyAtt
 }
 
 func (s *Session) Derive(mech cryptokit.Mechanism, key cryptokit.Key, attributes cryptokit.KeyAttributes) (cryptokit.Key, error) {
+	var data []byte
+
 	if key.Attributes().Capabilities & cryptokit.Derive == 0 {
 		return nil, errors.New("Key can't be used for derivation")
 	}
@@ -130,9 +131,17 @@ func (s *Session) Derive(mech cryptokit.Mechanism, key cryptokit.Key, attributes
 		return nil, err
 	}
 
-	data := make([]byte, attributes.Length)
+	skey := key.(*Key)
 
-	switch mech.(type) {
+	switch v := mech.(type) {
+	case cryptokit.Dukpt:
+		d, err := dukpt.DerivePekFromBdk(skey.data, v.Ksn)
+
+		if err != nil {
+			return nil, err
+		}
+
+		data = d
 	default:
 		return nil, errors.New("Unsupported mechanism")
 	}
