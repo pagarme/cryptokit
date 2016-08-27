@@ -1,9 +1,9 @@
 package cryptokit
 
-type RandomMechanism struct {
+type Random struct {
 }
 
-func (m *RandomMechanism) Name() string {
+func (m Random) Name() string {
 	return "random"
 }
 

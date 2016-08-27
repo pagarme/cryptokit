@@ -1,18 +1,8 @@
 package cryptokit
 
-type DesMechanism struct {
-	Mode BlockCipherMode
-	IV []byte
+type Des struct {
 }
 
-func (m *DesMechanism) BlockCipherMode() BlockCipherMode {
-	return m.Mode
-}
-
-func (m *DesMechanism) BlockIV() []byte {
-	return m.IV
-}
-
-func (m *DesMechanism) Name() string {
+func (m Des) Name() string {
 	return "des"
 }

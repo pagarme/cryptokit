@@ -3,11 +3,11 @@ package cryptokit
 type KeyType uint
 const (
 	_ KeyType = iota
-	Aes
-	Des
-	Tdes
-	Rsa
-	Dsa
+	AesKey
+	DesKey
+	TdesKey
+	RsaKey
+	DsaKey
 )
 
 type KeyCapability uint

@@ -1,18 +1,8 @@
 package cryptokit
 
-type AesMechanism struct {
-	Mode BlockCipherMode
-	IV []byte
+type Aes struct {
 }
 
-func (m *AesMechanism) BlockCipherMode() BlockCipherMode {
-	return m.Mode
-}
-
-func (m *AesMechanism) BlockIV() []byte {
-	return m.IV
-}
-
-func (m *AesMechanism) Name() string {
+func (m Aes) Name() string {
 	return "aes"
 }

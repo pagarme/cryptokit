@@ -1,6 +1,6 @@
 package cryptokit
 
 type BlockCipher interface {
-	BlockCipherMode() BlockCipherMode
-	BlockIV() []byte
+	BlockCipherUnderlying() Mechanism
+	BlockCipherIV() []byte
 }

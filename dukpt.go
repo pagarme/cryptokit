@@ -1,9 +1,9 @@
 package cryptokit
 
-type DukptMechanism struct {
+type Dukpt struct {
 	Ksn []byte
 }
 
-func (m *DukptMechanism) Name() string {
+func (m Dukpt) Name() string {
 	return "dukpt"
 }

@@ -53,7 +53,7 @@ func (s *Session) Encrypt(mech cryptokit.Mechanism, key cryptokit.Key, in []byte
 		return nil, errors.New("Key can't be used for encryption")
 	}
 
-	return s.encryptCore(mech, key, in)
+	return s.encryptionCore(mech, key, in, true)
 }
 
 func (s *Session) Decrypt(mech cryptokit.Mechanism, key cryptokit.Key, in []byte) ([]byte, error) {
@@ -61,7 +61,7 @@ func (s *Session) Decrypt(mech cryptokit.Mechanism, key cryptokit.Key, in []byte
 		return nil, errors.New("Key can't be used for decryption")
 	}
 
-	return s.decryptCore(mech, key, in)
+	return s.encryptionCore(mech, key, in, false)
 }
 
 func (s *Session) Translate(mech cryptokit.Mechanism, inKey cryptokit.Key, in []byte, outKey cryptokit.Key) ([]byte, error) {
@@ -79,7 +79,7 @@ func (s *Session) Wrap(mech cryptokit.Mechanism, key, kek cryptokit.Key) ([]byte
 		return nil, errors.New("Key can't be used for wrapping")
 	}
 
-	return s.encryptCore(mech, kek, key.(*Key).data)
+	return s.encryptionCore(mech, kek, key.(*Key).data, true)
 }
 
 func (s *Session) Unwrap(mech cryptokit.Mechanism, key []byte, kek cryptokit.Key, attributes cryptokit.KeyAttributes) (cryptokit.Key, error) {
@@ -91,7 +91,7 @@ func (s *Session) Unwrap(mech cryptokit.Mechanism, key []byte, kek cryptokit.Key
 		return nil, err
 	}
 
-	data, err := s.decryptCore(mech, kek, key)
+	data, err := s.encryptionCore(mech, kek, key, false)
 
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func (s *Session) Generate(mech cryptokit.Mechanism, attributes cryptokit.KeyAtt
 	data := make([]byte, attributes.Length)
 
 	switch mech.(type) {
-	case *cryptokit.RandomMechanism:
+	case cryptokit.Random:
 		_, err := rand.Read(data)
 
 		if err != nil {
@@ -133,7 +133,7 @@ func (s *Session) Derive(mech cryptokit.Mechanism, key cryptokit.Key, attributes
 	data := make([]byte, attributes.Length)
 
 	switch mech.(type) {
-	case *cryptokit.RandomMechanism:
+	case cryptokit.Random:
 		_, err := rand.Read(data)
 
 		if err != nil {
@@ -170,19 +170,10 @@ func (s *Session) createKey(a cryptokit.KeyAttributes, data []byte) (*Key, error
 	return k, nil
 }
 
-func (s *Session) encryptCore(mech cryptokit.Mechanism, key cryptokit.Key, in []byte) ([]byte, error) {
+func (s *Session) encryptionCore(mech cryptokit.Mechanism, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {
 	switch v := mech.(type) {
 	case cryptokit.BlockCipher:
-		return processBlockCipher(v, key, in, true)
-	}
-
-	return nil, errors.New("Unknown mechanism")
-}
-
-func (s *Session) decryptCore(mech cryptokit.Mechanism, key cryptokit.Key, in []byte) ([]byte, error) {
-	switch v := mech.(type) {
-	case cryptokit.BlockCipher:
-		return processBlockCipher(v, key, in, false)
+		return processBlockCipher(v, key, in, encrypt)
 	}
 
 	return nil, errors.New("Unknown mechanism")

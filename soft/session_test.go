@@ -20,9 +20,9 @@ func TestWrongMasterKey(t *testing.T) {
 	assert.Nil(t, err, "New returned an error")
 	assert.NotNil(t, p, "A nil session was returned")
 
-	key, err := s.Generate(&cryptokit.RandomMechanism{}, cryptokit.KeyAttributes{
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID: "TestKeyGeneration",
-		Type: cryptokit.Aes,
+		Type: cryptokit.AesKey,
 		Length: 32,
 		Permanent: true,
 		Extractable: false,
@@ -71,9 +71,9 @@ func TestKeyGenerationAndLifetime(t *testing.T) {
 	assert.Nil(t, err, "New returned an error")
 	assert.NotNil(t, p, "A nil session was returned")
 
-	key, err := s.Generate(&cryptokit.RandomMechanism{}, cryptokit.KeyAttributes{
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID: "TestKeyGeneration",
-		Type: cryptokit.Aes,
+		Type: cryptokit.AesKey,
 		Length: 32,
 		Permanent: true,
 		Extractable: false,
@@ -116,9 +116,9 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(&cryptokit.RandomMechanism{}, cryptokit.KeyAttributes{
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID: "TestKeyGeneration",
-		Type: cryptokit.Aes,
+		Type: cryptokit.AesKey,
 		Length: 32,
 		Permanent: true,
 		Extractable: false,
@@ -127,8 +127,8 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 
 	plaintext := []byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
-	ciphertext, err := s.Encrypt(&cryptokit.AesMechanism{
-		cryptokit.ECB,
+	ciphertext, err := s.Encrypt(cryptokit.Ecb{
+		cryptokit.Aes{},
 		nil,
 	}, key, plaintext)
 
@@ -136,8 +136,8 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 	assert.NotNil(t, ciphertext, "A nil ciphertext was returned")
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
-	plaintext2, err := s.Decrypt(&cryptokit.AesMechanism{
-		cryptokit.ECB,
+	plaintext2, err := s.Decrypt(cryptokit.Ecb{
+		cryptokit.Aes{},
 		nil,
 	}, key, ciphertext)
 
@@ -155,9 +155,9 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(&cryptokit.RandomMechanism{}, cryptokit.KeyAttributes{
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID: "TestKeyGeneration",
-		Type: cryptokit.Aes,
+		Type: cryptokit.AesKey,
 		Length: 32,
 		Permanent: true,
 		Extractable: false,
@@ -166,8 +166,8 @@ func TestAesEncryptionDecryption(t *testing.T) {
 
 	plaintext := []byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
-	ciphertext, err := s.Encrypt(&cryptokit.AesMechanism{
-		cryptokit.CBC,
+	ciphertext, err := s.Encrypt(cryptokit.Cbc{
+		cryptokit.Aes{},
 		nil,
 	}, key, plaintext)
 
@@ -175,8 +175,8 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	assert.NotNil(t, ciphertext, "A nil ciphertext was returned")
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
-	plaintext2, err := s.Decrypt(&cryptokit.AesMechanism{
-		cryptokit.CBC,
+	plaintext2, err := s.Decrypt(cryptokit.Cbc{
+		cryptokit.Aes{},
 		nil,
 	}, key, ciphertext)
 
@@ -194,9 +194,9 @@ func TestDesEncryptionDecryption(t *testing.T) {
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(&cryptokit.RandomMechanism{}, cryptokit.KeyAttributes{
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID: "TestKeyGeneration",
-		Type: cryptokit.Des,
+		Type: cryptokit.DesKey,
 		Length: 8,
 		Permanent: true,
 		Extractable: false,
@@ -205,8 +205,8 @@ func TestDesEncryptionDecryption(t *testing.T) {
 
 	plaintext := []byte{0,0,0,0,0,0,0,0}
 
-	ciphertext, err := s.Encrypt(&cryptokit.DesMechanism{
-		cryptokit.CBC,
+	ciphertext, err := s.Encrypt(cryptokit.Cbc{
+		cryptokit.Des{},
 		nil,
 	}, key, plaintext)
 
@@ -214,8 +214,8 @@ func TestDesEncryptionDecryption(t *testing.T) {
 	assert.NotNil(t, ciphertext, "A nil ciphertext was returned")
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
-	plaintext2, err := s.Decrypt(&cryptokit.DesMechanism{
-		cryptokit.CBC,
+	plaintext2, err := s.Decrypt(cryptokit.Cbc{
+		cryptokit.Des{},
 		nil,
 	}, key, ciphertext)
 

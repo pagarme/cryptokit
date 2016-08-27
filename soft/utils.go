@@ -9,7 +9,7 @@ import (
 )
 
 func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {
-	impl, err := getImplementation(mech, key)
+	impl, err := getImplementation(mech.BlockCipherUnderlying(), key)
 
 	if err != nil {
 		return nil, err
@@ -32,13 +32,15 @@ func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte
 	return out, nil
 }
 
-func getImplementation(mech cryptokit.BlockCipher, key cryptokit.Key) (cipher.Block, error) {
+func getImplementation(mech cryptokit.Mechanism, key cryptokit.Key) (cipher.Block, error) {
 	skey := key.(*Key)
 
 	switch mech.(type) {
-	case *cryptokit.AesMechanism:
+	case cryptokit.Aes:
 		return aes.NewCipher(skey.data)
-	case *cryptokit.DesMechanism:
+	case cryptokit.Des:
+		return des.NewCipher(skey.data)
+	case cryptokit.Tdes:
 		return des.NewCipher(skey.data)
 	}
 
@@ -48,20 +50,20 @@ func getImplementation(mech cryptokit.BlockCipher, key cryptokit.Key) (cipher.Bl
 func getBlockImplementation(mech cryptokit.BlockCipher, impl cipher.Block, encrypt bool) (cipher.BlockMode, error) {
 	var c cipher.BlockMode
 
-	iv := mech.BlockIV()
+	iv := mech.BlockCipherIV()
 
 	if iv == nil {
 		iv = make([]byte, impl.BlockSize())
 	}
 
-	switch mech.BlockCipherMode() {
-	case cryptokit.CBC:
+	switch mech.(type) {
+	case cryptokit.Cbc:
 		if encrypt {
 			c = cipher.NewCBCEncrypter(impl, iv)
 		} else {
 			c = cipher.NewCBCDecrypter(impl, iv)
 		}
-	case cryptokit.ECB:
+	case cryptokit.Ecb:
 		c = &ecbBlockMode{impl, encrypt}
 	default:
 		return nil, errors.New("Unknown block cipher mode")
