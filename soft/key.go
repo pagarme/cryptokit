@@ -113,7 +113,13 @@ func (k *Key) save() error {
 			return err
 		}
 
-		if err := b.Put([]byte(k.id), bytes); err != nil {
+		ciphertext, err := k.session.encryptStore(bytes)
+
+		if err != nil {
+			return err
+		}
+
+		if err := b.Put([]byte(k.id), ciphertext); err != nil {
 			return err
 		}
 

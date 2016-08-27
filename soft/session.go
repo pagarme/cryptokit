@@ -3,6 +3,7 @@ package soft
 import (
 	"errors"
 	"crypto/rand"
+	"crypto/cipher"
 	"encoding/json"
 	"github.com/boltdb/bolt"
 	"github.com/pagarme/cryptokit"
@@ -10,6 +11,7 @@ import (
 
 type Session struct {
 	db *bolt.DB
+	masterKey cipher.Block
 }
 
 func (s *Session) FindKey(id string) (cryptokit.Key, bool, error) {
@@ -31,9 +33,15 @@ func (s *Session) FindKey(id string) (cryptokit.Key, bool, error) {
 		return nil, false, nil
 	}
 
+	plaintext, err := s.decryptStore(bytes)
+
+	if err != nil {
+		return nil, false, err
+	}
+
 	attribs := make(map[string]interface{})
 
-	if err := json.Unmarshal(bytes, &attribs); err != nil {
+	if err := json.Unmarshal(plaintext, &attribs); err != nil {
 		return nil, true, err
 	}
 
@@ -178,4 +186,34 @@ func (s *Session) decryptCore(mech cryptokit.Mechanism, key cryptokit.Key, in []
 	}
 
 	return nil, errors.New("Unknown mechanism")
+}
+
+func (s *Session) encryptStore(plaintext []byte) ([]byte, error) {
+	gcm, err := cipher.NewGCM(s.masterKey)
+
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+
+	if _, err := rand.Read(nonce); err != nil {
+		return nil, err
+	}
+
+	ciphertext := gcm.Seal(nil, nonce, plaintext, nil)
+
+	return append(nonce, ciphertext...), nil
+}
+
+func (s *Session) decryptStore(ciphertext []byte) ([]byte, error) {
+	gcm, err := cipher.NewGCM(s.masterKey)
+
+	if err != nil {
+		return nil, err
+	}
+
+	plaintext, err := gcm.Open(nil, ciphertext[:gcm.NonceSize()], ciphertext[gcm.NonceSize():], nil)
+
+	return plaintext, err
 }

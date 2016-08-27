@@ -7,10 +7,63 @@ import (
 	"github.com/pagarme/cryptokit"
 )
 
-func TestKeyGeneration(t *testing.T) {
+var wrongKey = []byte{1,2,2,3,4,5,6,7,8,9,10,11,12,13,14,95,16,17,18,19,255,21,22,23,24,25,26,27,28,29,30,31}
+
+func TestWrongMasterKey(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db")
+	p, err := New("testdb.db", testKey)
+	assert.Nil(t, err, "New returned an error")
+	assert.NotNil(t, p, "A nil provider was returned")
+
+	s, err := p.OpenSession()
+	assert.Nil(t, err, "New returned an error")
+	assert.NotNil(t, p, "A nil session was returned")
+
+	key, err := s.Generate(&cryptokit.RandomMechanism{}, cryptokit.KeyAttributes{
+		ID: "TestKeyGeneration",
+		Type: cryptokit.Aes,
+		Length: 32,
+		Permanent: true,
+		Extractable: false,
+		Capabilities: cryptokit.AllCapabilities,
+	})
+
+	assert.Nil(t, err, "An error ocurred generating the key")
+	assert.NotNil(t, key, "A nil key was returned")
+
+	err = s.Close()
+	assert.Nil(t, err, "An error ocurred when closing the session")
+
+	err = p.Close()
+	assert.Nil(t, err, "An error ocurred when closing the provider")
+
+	// Open again, with the wrong key
+	p, err = New("testdb.db", wrongKey)
+	assert.Nil(t, err, "New returned an error")
+	assert.NotNil(t, p, "A nil provider was returned")
+
+	s, err = p.OpenSession()
+	assert.Nil(t, err, "New returned an error")
+	assert.NotNil(t, p, "A nil session was returned")
+
+	key2, found, err := s.FindKey("TestKeyGeneration")
+
+	assert.NotNil(t, err, "An error didn't occur while finding the key")
+	assert.Nil(t, key2, "A nil key wasn't returned")
+	assert.False(t, found, "The key wasn found")
+
+	err = s.Close()
+	assert.Nil(t, err, "An error ocurred when closing the session")
+
+	err = p.Close()
+	assert.Nil(t, err, "An error ocurred when closing the provider")
+}
+
+func TestKeyGenerationAndLifetime(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
 	assert.Nil(t, err, "New returned an error")
 	assert.NotNil(t, p, "A nil provider was returned")
 
@@ -57,7 +110,7 @@ func TestKeyGeneration(t *testing.T) {
 func TestEcbEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db")
+	p, err := New("testdb.db", testKey)
 	s, err := p.OpenSession()
 
 	defer p.Close()
@@ -96,7 +149,7 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 func TestAesEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db")
+	p, err := New("testdb.db", testKey)
 	s, err := p.OpenSession()
 
 	defer p.Close()
@@ -135,7 +188,7 @@ func TestAesEncryptionDecryption(t *testing.T) {
 func TestDesEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db")
+	p, err := New("testdb.db", testKey)
 	s, err := p.OpenSession()
 
 	defer p.Close()
