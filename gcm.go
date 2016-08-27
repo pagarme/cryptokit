@@ -1,11 +1,11 @@
 package cryptokit
 
-type GcmMechanism struct {
+type Gcm struct {
 	Underlying Mechanism
 	Nonce []byte
 	AdditionalData []byte
 }
 
-func (c *GcmMechanism) Name() string {
+func (c Gcm) Name() string {
 	return c.Underlying.Name() + "-gcm"
 }

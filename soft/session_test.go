@@ -185,6 +185,47 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	assert.Equal(t, plaintext, plaintext2, "Plaintext must be equal to original plaintext")
 }
 
+func TestGcmEncryptionDecryption(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
+	s, err := p.OpenSession()
+
+	defer p.Close()
+	defer s.Close()
+
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+		ID: "TestKeyGeneration",
+		Type: cryptokit.AesKey,
+		Length: 32,
+		Permanent: true,
+		Extractable: false,
+		Capabilities: cryptokit.AllCapabilities,
+	})
+
+	plaintext := []byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+	ciphertext, err := s.Encrypt(cryptokit.Gcm{
+		cryptokit.Aes{},
+		[]byte{0,1,2,3,4,5,6,7,8,9,10,11},
+		nil,
+	}, key, plaintext)
+
+	assert.Nil(t, err, "An error during encryption")
+	assert.NotNil(t, ciphertext, "A nil ciphertext was returned")
+	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
+
+	plaintext2, err := s.Decrypt(cryptokit.Gcm{
+		cryptokit.Aes{},
+		[]byte{0,1,2,3,4,5,6,7,8,9,10,11},
+		nil,
+	}, key, ciphertext)
+
+	assert.Nil(t, err, "An error during decryption")
+	assert.NotNil(t, ciphertext, "A nil plaintext was returned")
+	assert.Equal(t, plaintext, plaintext2, "Plaintext must be equal to original plaintext")
+}
+
 func TestDesEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
@@ -216,6 +257,45 @@ func TestDesEncryptionDecryption(t *testing.T) {
 
 	plaintext2, err := s.Decrypt(cryptokit.Cbc{
 		cryptokit.Des{},
+		nil,
+	}, key, ciphertext)
+
+	assert.Nil(t, err, "An error during decryption")
+	assert.NotNil(t, ciphertext, "A nil plaintext was returned")
+	assert.Equal(t, plaintext, plaintext2, "Plaintext must be equal to original plaintext")
+}
+
+func TestTdesEncryptionDecryption(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
+	s, err := p.OpenSession()
+
+	defer p.Close()
+	defer s.Close()
+
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+		ID: "TestKeyGeneration",
+		Type: cryptokit.TdesKey,
+		Length: 24,
+		Permanent: true,
+		Extractable: false,
+		Capabilities: cryptokit.AllCapabilities,
+	})
+
+	plaintext := []byte{0,0,0,0,0,0,0,0}
+
+	ciphertext, err := s.Encrypt(cryptokit.Cbc{
+		cryptokit.Tdes{},
+		nil,
+	}, key, plaintext)
+
+	assert.Nil(t, err, "An error during encryption")
+	assert.NotNil(t, ciphertext, "A nil ciphertext was returned")
+	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
+
+	plaintext2, err := s.Decrypt(cryptokit.Cbc{
+		cryptokit.Tdes{},
 		nil,
 	}, key, ciphertext)
 

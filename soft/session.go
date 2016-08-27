@@ -133,12 +133,6 @@ func (s *Session) Derive(mech cryptokit.Mechanism, key cryptokit.Key, attributes
 	data := make([]byte, attributes.Length)
 
 	switch mech.(type) {
-	case cryptokit.Random:
-		_, err := rand.Read(data)
-
-		if err != nil {
-			return nil, err
-		}
 	default:
 		return nil, errors.New("Unsupported mechanism")
 	}
@@ -174,6 +168,8 @@ func (s *Session) encryptionCore(mech cryptokit.Mechanism, key cryptokit.Key, in
 	switch v := mech.(type) {
 	case cryptokit.BlockCipher:
 		return processBlockCipher(v, key, in, encrypt)
+	case cryptokit.Gcm:
+		return processAead(v, key, in, encrypt)
 	}
 
 	return nil, errors.New("Unknown mechanism")

@@ -8,6 +8,26 @@ import (
 	"github.com/pagarme/cryptokit"
 )
 
+func processAead(mech cryptokit.Gcm, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {
+	impl, err := getImplementation(mech.Underlying, key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	aead, err := cipher.NewGCM(impl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if encrypt {
+		return aead.Seal(nil, mech.Nonce, in, mech.AdditionalData), nil
+	} else {
+		return aead.Open(nil, mech.Nonce, in, mech.AdditionalData)
+	}
+}
+
 func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {
 	impl, err := getImplementation(mech.BlockCipherUnderlying(), key)
 
@@ -41,7 +61,7 @@ func getImplementation(mech cryptokit.Mechanism, key cryptokit.Key) (cipher.Bloc
 	case cryptokit.Des:
 		return des.NewCipher(skey.data)
 	case cryptokit.Tdes:
-		return des.NewCipher(skey.data)
+		return des.NewTripleDESCipher(skey.data)
 	}
 
 	return nil, errors.New("Unknown mechanism")
