@@ -1,6 +1,7 @@
 package soft
 
 import (
+	"errors"
 	"encoding/json"
 	"encoding/base64"
 	"github.com/boltdb/bolt"
@@ -71,6 +72,14 @@ func (k *Key) Attributes() cryptokit.KeyAttributes {
 
 func (k *Key) Session() cryptokit.Session {
 	return k.session
+}
+
+func (k *Key) Extract() ([]byte, error) {
+	if !k.extractable {
+		return nil, errors.New("Key is not extractable")
+	}
+
+	return k.data, nil
 }
 
 func (k *Key) Destroy() error {

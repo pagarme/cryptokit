@@ -303,3 +303,61 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 	assert.NotNil(t, ciphertext, "A nil plaintext was returned")
 	assert.Equal(t, plaintext, plaintext2, "Plaintext must be equal to original plaintext")
 }
+
+func TestWrapUnwrap(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
+	s, err := p.OpenSession()
+
+	defer p.Close()
+	defer s.Close()
+
+	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+		ID: "TestKeyGeneration",
+		Type: cryptokit.AesKey,
+		Length: 32,
+		Permanent: true,
+		Extractable: true,
+		Capabilities: cryptokit.AllCapabilities,
+	})
+
+	keyData, _ := key.Extract()
+
+	wrapping, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+		ID: "WrappingKey",
+		Type: cryptokit.AesKey,
+		Length: 32,
+		Permanent: true,
+		Extractable: false,
+		Capabilities: cryptokit.AllCapabilities,
+	})
+
+	ciphertext, err := s.Wrap(cryptokit.Cbc{
+		cryptokit.Aes{},
+		nil,
+	}, wrapping, key)
+
+	assert.Nil(t, err, "An error during Wrapping")
+	assert.NotNil(t, ciphertext, "A nil ciphertext was returned")
+	assert.NotEqual(t, ciphertext, keyData, "Plaintext must be different from ciphertext")
+
+	key2, err := s.Unwrap(cryptokit.Cbc{
+		cryptokit.Aes{},
+		nil,
+	}, wrapping, ciphertext, cryptokit.KeyAttributes{
+		ID: "TestKeyGeneration2",
+		Type: cryptokit.AesKey,
+		Length: 32,
+		Permanent: false,
+		Extractable: true,
+		Capabilities: cryptokit.AllCapabilities,
+	})
+
+	assert.Nil(t, err, "An error during decryption")
+	assert.NotNil(t, ciphertext, "A nil key was returned")
+
+	keyData2, _ := key2.Extract()
+
+	assert.Equal(t, keyData, keyData2, "Plaintext must be equal to original plaintext")
+}

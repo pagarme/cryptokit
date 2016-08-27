@@ -75,7 +75,7 @@ func (s *Session) Translate(mech cryptokit.Mechanism, inKey cryptokit.Key, in []
 	return s.Encrypt(mech, outKey, data)
 }
 
-func (s *Session) Wrap(mech cryptokit.Mechanism, key, kek cryptokit.Key) ([]byte, error) {
+func (s *Session) Wrap(mech cryptokit.Mechanism, kek, key cryptokit.Key) ([]byte, error) {
 	if kek.Attributes().Capabilities & cryptokit.Wrap == 0 {
 		return nil, errors.New("Key can't be used for wrapping")
 	}
@@ -83,7 +83,7 @@ func (s *Session) Wrap(mech cryptokit.Mechanism, key, kek cryptokit.Key) ([]byte
 	return s.encryptionCore(mech, kek, key.(*Key).data, true)
 }
 
-func (s *Session) Unwrap(mech cryptokit.Mechanism, key []byte, kek cryptokit.Key, attributes cryptokit.KeyAttributes) (cryptokit.Key, error) {
+func (s *Session) Unwrap(mech cryptokit.Mechanism, kek cryptokit.Key, key []byte, attributes cryptokit.KeyAttributes) (cryptokit.Key, error) {
 	if kek.Attributes().Capabilities & cryptokit.Unwrap == 0 {
 		return nil, errors.New("Key can't be used for unwrapping")
 	}

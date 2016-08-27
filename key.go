@@ -37,6 +37,7 @@ type Key interface{
 	Type() KeyType
 	Length() uint
 	Attributes() KeyAttributes
+	Extract() ([]byte, error)
 
 	Session() Session
 	Destroy() error
