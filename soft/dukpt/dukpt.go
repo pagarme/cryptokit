@@ -62,6 +62,16 @@ func DecodeKsn(ksn []byte) (result Ksn) {
 	return
 }
 
+func CalculateKcv(key []byte) ([]byte, error) {
+	kcv := make([]byte, 8)
+
+	if err := tdesEncrypt(kcv, []byte{0, 0, 0, 0, 0, 0, 0, 0}, key); err != nil {
+		return nil, err
+	}
+
+	return kcv, nil
+}
+
 func ExtractKsnWithoutCounter(ksn, cleared []byte) {
 	// Clear the KSN counter
 	copy(cleared, ksn[:8])
