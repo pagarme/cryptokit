@@ -1,11 +1,17 @@
 package dukpt
 
 import (
-	"unsafe"
 	"bytes"
 	"crypto/des"
 	"encoding/binary"
+	"unsafe"
 )
+
+type Ksn struct {
+	Ksi     []byte
+	Trsm    []byte
+	Counter int
+}
 
 var (
 	REG3_MASK      uint64 = 0x1FFFFF
@@ -15,14 +21,59 @@ var (
 	PEK_MASK              = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF}
 )
 
+// This isn't official as there is no specification on how to build the KSI
+// Aside from TC's 21 bits, the remaining 59 bits are opaque
+// Here we assume the 10-5-5 scheme
+func EncodeKsn(result []byte, ksn Ksn) {
+	result[0] = ksn.Ksi[0]
+	result[1] = ksn.Ksi[1]
+	result[2] = ksn.Ksi[2]
+	result[3] = ksn.Ksi[3]
+	result[4] = ksn.Ksi[4]
+
+	result[5] = ksn.Trsm[0]
+	result[6] = ksn.Trsm[1]
+	result[7] = ksn.Trsm[2] & 0xE0
+
+	result[7] |= byte((ksn.Counter >> 16) & 0x1F)
+	result[8] = byte((ksn.Counter >> 8) & 0xFF)
+	result[9] = byte(ksn.Counter & 0xFF)
+}
+
+func DecodeKsn(ksn []byte) (result Ksn) {
+	result = Ksn{
+		Ksi:     make([]byte, 5),
+		Trsm:    make([]byte, 3),
+		Counter: 0,
+	}
+
+	result.Ksi[0] = ksn[0]
+	result.Ksi[1] = ksn[1]
+	result.Ksi[2] = ksn[2]
+	result.Ksi[3] = ksn[3]
+	result.Ksi[4] = ksn[4]
+
+	result.Trsm[0] = ksn[5]
+	result.Trsm[1] = ksn[6]
+	result.Trsm[2] = ksn[7] & 0xE0
+
+	result.Counter = int((uint64(ksn[9]) | (uint64(ksn[8]) << 8) | (uint64(ksn[7]&0x1F) << 16)))
+
+	return
+}
+
+func ExtractKsnWithoutCounter(ksn, cleared []byte) {
+	// Clear the KSN counter
+	copy(cleared, ksn[:8])
+	cleared[7] &= 0xE0
+}
+
 func DeriveIpekFromBdk(bdk []byte, ksn []byte) ([]byte, error) {
 	cleared := make([]byte, 8)
 	xored := make([]byte, 16)
 	ipek := make([]byte, 16)
 
-	// Clear the KSN counter
-	copy(cleared, ksn[:8])
-	cleared[7] &= 0xE0
+	ExtractKsnWithoutCounter(ksn, cleared)
 
 	// Xor the BDK for the second key
 	xorWords(xored, bdk, KEY_MASK)
@@ -71,10 +122,10 @@ func deriveKey(dst, ipek, ksn []byte) error {
 	reg8[6] = 0
 	reg8[5] &= 0xE0
 
-	counter := retrieveInt64(ksn[2:]) & REG3_MASK
+	counter := decodeInt64(ksn[2:]) & REG3_MASK
 
 	for shiftReg = SHIFT_REG_MASK; shiftReg != 0; shiftReg >>= 1 {
-		if shiftReg & counter != 0 {
+		if shiftReg&counter != 0 {
 			ptr := *(*[8]byte)(unsafe.Pointer(&shiftReg))
 
 			reg8[5] |= ptr[2]
@@ -165,8 +216,15 @@ func desEncrypt(dst, data, key []byte) error {
 	return nil
 }
 
-func retrieveInt64(b []byte) (result uint64) {
+func decodeInt64(b []byte) (result uint64) {
 	buffer := bytes.NewBuffer(b)
 	binary.Read(buffer, binary.BigEndian, &result)
+	return
+}
+
+func encodeInt64(b uint64) (result []byte) {
+	result = make([]byte, 8)
+	buffer := bytes.NewBuffer(result)
+	binary.Write(buffer, binary.BigEndian, b)
 	return
 }
