@@ -69,7 +69,7 @@ func CalculateKcv(key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return kcv, nil
+	return kcv[:3], nil
 }
 
 func ExtractKsnWithoutCounter(ksn, cleared []byte) {
