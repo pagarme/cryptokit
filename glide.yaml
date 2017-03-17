@@ -1,0 +1,12 @@
+package: github.com/pagarme/cryptokit
+import:
+- package: github.com/SSSaaS/sssa-golang
+- package: github.com/boltdb/bolt
+  version: v1.3.0
+- package: github.com/buger/goterm
+- package: github.com/tucnak/climax
+testImport:
+- package: github.com/stretchr/testify
+  version: v1.1.4
+  subpackages:
+  - assert
