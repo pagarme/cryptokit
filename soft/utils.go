@@ -1,10 +1,12 @@
 package soft
 
 import (
-	"errors"
+	"crypto"
 	"crypto/aes"
-	"crypto/des"
 	"crypto/cipher"
+	"crypto/des"
+	"crypto/hmac"
+	"errors"
 	"github.com/pagarme/cryptokit"
 )
 
@@ -41,7 +43,7 @@ func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte
 		return nil, err
 	}
 
-	if len(in) % c.BlockSize() != 0 {
+	if len(in)%c.BlockSize() != 0 {
 		return nil, errors.New("Input must be a multiple of block size")
 	}
 
@@ -50,6 +52,38 @@ func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte
 	c.CryptBlocks(out, in)
 
 	return out, nil
+}
+
+func processHmac(mech cryptokit.Hmac, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {
+	skey := key.(*Key)
+
+	if !encrypt {
+		return nil, errors.New("This mechanism is encrypt only")
+	}
+
+	impl, err := getHashImplementation(mech.Underlying)
+
+	if err != nil {
+		return nil, err
+	}
+
+	h := hmac.New(impl.New, skey.data)
+	h.Write(in)
+
+	return h.Sum(nil), nil
+}
+
+func getHashImplementation(mech cryptokit.Mechanism) (crypto.Hash, error) {
+	switch mech.(type) {
+	case cryptokit.Sha1:
+		return crypto.SHA1, nil
+	case cryptokit.Sha256:
+		return crypto.SHA256, nil
+	case cryptokit.Sha512:
+		return crypto.SHA512, nil
+	}
+
+	return 0, errors.New("Unknown mechanism")
 }
 
 func getImplementation(mech cryptokit.Mechanism, key cryptokit.Key) (cipher.Block, error) {

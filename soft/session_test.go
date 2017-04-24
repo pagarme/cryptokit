@@ -1,13 +1,14 @@
 package soft
 
 import (
+	"encoding/hex"
+	"github.com/pagarme/cryptokit"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/pagarme/cryptokit"
 )
 
-var wrongKey = []byte{1,2,2,3,4,5,6,7,8,9,10,11,12,13,14,95,16,17,18,19,255,21,22,23,24,25,26,27,28,29,30,31}
+var wrongKey = []byte{1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 95, 16, 17, 18, 19, 255, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
 
 func TestWrongMasterKey(t *testing.T) {
 	defer os.Remove("testdb.db")
@@ -21,11 +22,11 @@ func TestWrongMasterKey(t *testing.T) {
 	assert.NotNil(t, p, "A nil session was returned")
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: true,
-		Extractable: false,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
@@ -72,11 +73,11 @@ func TestKeyGenerationAndLifetime(t *testing.T) {
 	assert.NotNil(t, p, "A nil session was returned")
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: true,
-		Extractable: false,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
@@ -117,15 +118,15 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 	defer s.Close()
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: true,
-		Extractable: false,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	plaintext := []byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Ecb{
 		cryptokit.Aes{},
@@ -156,15 +157,15 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	defer s.Close()
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: true,
-		Extractable: false,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	plaintext := []byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
 		cryptokit.Aes{},
@@ -195,19 +196,19 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 	defer s.Close()
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: true,
-		Extractable: false,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	plaintext := []byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Gcm{
 		cryptokit.Aes{},
-		[]byte{0,1,2,3,4,5,6,7,8,9,10,11},
+		[]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 		nil,
 	}, key, plaintext)
 
@@ -217,7 +218,7 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 
 	plaintext2, err := s.Decrypt(cryptokit.Gcm{
 		cryptokit.Aes{},
-		[]byte{0,1,2,3,4,5,6,7,8,9,10,11},
+		[]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 		nil,
 	}, key, ciphertext)
 
@@ -236,15 +237,15 @@ func TestDesEncryptionDecryption(t *testing.T) {
 	defer s.Close()
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.DesKey,
-		Length: 8,
-		Permanent: true,
-		Extractable: false,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.DesKey,
+		Length:       8,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	plaintext := []byte{0,0,0,0,0,0,0,0}
+	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
 		cryptokit.Des{},
@@ -275,15 +276,15 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 	defer s.Close()
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.TdesKey,
-		Length: 24,
-		Permanent: true,
-		Extractable: false,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.TdesKey,
+		Length:       24,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	plaintext := []byte{0,0,0,0,0,0,0,0}
+	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
 		cryptokit.Tdes{},
@@ -304,6 +305,91 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 	assert.Equal(t, plaintext, plaintext2, "Plaintext must be equal to original plaintext")
 }
 
+func TestSha1(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
+	s, err := p.OpenSession()
+
+	defer p.Close()
+	defer s.Close()
+
+	plaintext := []byte("lol")
+
+	ciphertext, err := s.Hash(cryptokit.Sha1{}, plaintext)
+
+	assert.Nil(t, err, "An error during hashing")
+	assert.NotNil(t, ciphertext, "A nil hash was returned")
+	assert.Equal(t, "403926033d001b5279df37cbbe5287b7c7c267fa", hex.EncodeToString(ciphertext))
+}
+
+func TestSha256(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
+	s, err := p.OpenSession()
+
+	defer p.Close()
+	defer s.Close()
+
+	plaintext := []byte("lol")
+
+	ciphertext, err := s.Hash(cryptokit.Sha256{}, plaintext)
+
+	assert.Nil(t, err, "An error during hashing")
+	assert.NotNil(t, ciphertext, "A nil hash was returned")
+	assert.Equal(t, "07123e1f482356c415f684407a3b8723e10b2cbbc0b8fcd6282c49d37c9c1abc", hex.EncodeToString(ciphertext))
+}
+
+func TestSha512(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
+	s, err := p.OpenSession()
+
+	defer p.Close()
+	defer s.Close()
+
+	plaintext := []byte("lol")
+
+	ciphertext, err := s.Hash(cryptokit.Sha512{}, plaintext)
+
+	assert.Nil(t, err, "An error during hashing")
+	assert.NotNil(t, ciphertext, "A nil hash was returned")
+	assert.Equal(t, "3dd28c5a23f780659d83dd99981e2dcb82bd4c4bdc8d97a7da50ae84c7a7229a6dc0ae8ae4748640a4cc07ccc2d55dbdc023a99b3ef72bc6ce49e30b84253dae", hex.EncodeToString(ciphertext))
+}
+
+func TestHmac(t *testing.T) {
+	defer os.Remove("testdb.db")
+
+	p, err := New("testdb.db", testKey)
+	s, err := p.OpenSession()
+
+	defer p.Close()
+	defer s.Close()
+
+	key, err := s.Generate(cryptokit.FixedKey{
+		Key: []byte("test"),
+	}, cryptokit.KeyAttributes{
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.RawKey,
+		Length:       4,
+		Permanent:    true,
+		Extractable:  false,
+		Capabilities: cryptokit.AllCapabilities,
+	})
+
+	plaintext := []byte("lol")
+
+	ciphertext, err := s.Encrypt(cryptokit.Hmac{
+		Underlying: cryptokit.Sha1{},
+	}, key, plaintext)
+
+	assert.Nil(t, err, "An error during hashing")
+	assert.NotNil(t, ciphertext, "A nil hash was returned")
+	assert.Equal(t, "e68dfbf5296ca87f442782b1649ddc3ffcfbee7b", hex.EncodeToString(ciphertext))
+}
+
 func TestWrapUnwrap(t *testing.T) {
 	defer os.Remove("testdb.db")
 
@@ -314,22 +400,22 @@ func TestWrapUnwrap(t *testing.T) {
 	defer s.Close()
 
 	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: true,
-		Extractable: true,
+		ID:           "TestKeyGeneration",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    true,
+		Extractable:  true,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
 	keyData, _ := key.Extract()
 
 	wrapping, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
-		ID: "WrappingKey",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: true,
-		Extractable: false,
+		ID:           "WrappingKey",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    true,
+		Extractable:  false,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
@@ -346,11 +432,11 @@ func TestWrapUnwrap(t *testing.T) {
 		cryptokit.Aes{},
 		nil,
 	}, wrapping, ciphertext, cryptokit.KeyAttributes{
-		ID: "TestKeyGeneration2",
-		Type: cryptokit.AesKey,
-		Length: 32,
-		Permanent: false,
-		Extractable: true,
+		ID:           "TestKeyGeneration2",
+		Type:         cryptokit.AesKey,
+		Length:       32,
+		Permanent:    false,
+		Extractable:  true,
 		Capabilities: cryptokit.AllCapabilities,
 	})
 

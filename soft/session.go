@@ -1,24 +1,24 @@
 package soft
 
 import (
-	"errors"
-	"crypto/rand"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"github.com/boltdb/bolt"
 	"github.com/pagarme/cryptokit"
 	"github.com/pagarme/cryptokit/soft/dukpt"
 )
 
 type Session struct {
-	db *bolt.DB
+	db        *bolt.DB
 	masterKey cipher.Block
 }
 
 func (s *Session) FindKey(id string) (cryptokit.Key, bool, error) {
 	var bytes []byte
 
-	err := s.db.View(func (tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("keys"))
 
 		bytes = b.Get([]byte(id))
@@ -50,7 +50,7 @@ func (s *Session) FindKey(id string) (cryptokit.Key, bool, error) {
 }
 
 func (s *Session) Encrypt(mech cryptokit.Mechanism, key cryptokit.Key, in []byte) ([]byte, error) {
-	if key.Attributes().Capabilities & cryptokit.Encrypt == 0 {
+	if key.Attributes().Capabilities&cryptokit.Encrypt == 0 {
 		return nil, errors.New("Key can't be used for encryption")
 	}
 
@@ -58,7 +58,7 @@ func (s *Session) Encrypt(mech cryptokit.Mechanism, key cryptokit.Key, in []byte
 }
 
 func (s *Session) Decrypt(mech cryptokit.Mechanism, key cryptokit.Key, in []byte) ([]byte, error) {
-	if key.Attributes().Capabilities & cryptokit.Decrypt == 0 {
+	if key.Attributes().Capabilities&cryptokit.Decrypt == 0 {
 		return nil, errors.New("Key can't be used for decryption")
 	}
 
@@ -76,7 +76,7 @@ func (s *Session) Translate(mech cryptokit.Mechanism, inKey cryptokit.Key, in []
 }
 
 func (s *Session) Wrap(mech cryptokit.Mechanism, kek, key cryptokit.Key) ([]byte, error) {
-	if kek.Attributes().Capabilities & cryptokit.Wrap == 0 {
+	if kek.Attributes().Capabilities&cryptokit.Wrap == 0 {
 		return nil, errors.New("Key can't be used for wrapping")
 	}
 
@@ -84,7 +84,7 @@ func (s *Session) Wrap(mech cryptokit.Mechanism, kek, key cryptokit.Key) ([]byte
 }
 
 func (s *Session) Unwrap(mech cryptokit.Mechanism, kek cryptokit.Key, key []byte, attributes cryptokit.KeyAttributes) (cryptokit.Key, error) {
-	if kek.Attributes().Capabilities & cryptokit.Unwrap == 0 {
+	if kek.Attributes().Capabilities&cryptokit.Unwrap == 0 {
 		return nil, errors.New("Key can't be used for unwrapping")
 	}
 
@@ -108,7 +108,9 @@ func (s *Session) Generate(mech cryptokit.Mechanism, attributes cryptokit.KeyAtt
 
 	data := make([]byte, attributes.Length)
 
-	switch mech.(type) {
+	switch v := mech.(type) {
+	case cryptokit.FixedKey:
+		copy(data, v.Key)
 	case cryptokit.Random:
 		if _, err := rand.Read(data); err != nil {
 			return nil, err
@@ -123,7 +125,7 @@ func (s *Session) Generate(mech cryptokit.Mechanism, attributes cryptokit.KeyAtt
 func (s *Session) Derive(mech cryptokit.Mechanism, key cryptokit.Key, attributes cryptokit.KeyAttributes) (cryptokit.Key, error) {
 	var data []byte
 
-	if key.Attributes().Capabilities & cryptokit.Derive == 0 {
+	if key.Attributes().Capabilities&cryptokit.Derive == 0 {
 		return nil, errors.New("Key can't be used for derivation")
 	}
 
@@ -147,6 +149,19 @@ func (s *Session) Derive(mech cryptokit.Mechanism, key cryptokit.Key, attributes
 	}
 
 	return s.createKey(attributes, data)
+}
+
+func (s *Session) Hash(mech cryptokit.Mechanism, in []byte) ([]byte, error) {
+	hash, err := getHashImplementation(mech)
+
+	if err != nil {
+		return nil, err
+	}
+
+	h := hash.New()
+	h.Write(in)
+
+	return h.Sum(nil), nil
 }
 
 func (s *Session) Close() error {
@@ -179,6 +194,8 @@ func (s *Session) encryptionCore(mech cryptokit.Mechanism, key cryptokit.Key, in
 		return processBlockCipher(v, key, in, encrypt)
 	case cryptokit.Gcm:
 		return processAead(v, key, in, encrypt)
+	case cryptokit.Hmac:
+		return processHmac(v, key, in, encrypt)
 	}
 
 	return nil, errors.New("Unknown mechanism")

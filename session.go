@@ -13,5 +13,7 @@ type Session interface {
 	Generate(mech Mechanism, attributes KeyAttributes) (Key, error)
 	Derive(mech Mechanism, key Key, attributes KeyAttributes) (Key, error)
 
+	Hash(mech Mechanism, in []byte) ([]byte, error)
+
 	Close() error
 }
