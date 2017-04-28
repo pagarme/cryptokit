@@ -1,7 +1,7 @@
 package cryptokit
 
 type Hmac struct {
-	Underlying Mechanism
+	Underlying Mechanism `cmd:",primary"`
 }
 
 func (m Hmac) Name() string {

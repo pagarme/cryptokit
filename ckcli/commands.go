@@ -8,25 +8,33 @@ import (
 )
 
 type echoArgs struct {
-	Text    string `cmd:",primary"`
-	TheArg2 string
+	Text string `cmd:",primary"`
 }
 
 var commands = map[string]interface{}{}
 
 func init() {
 	RegisterType(&cryptokit.Aes{})
+	RegisterType(&cryptokit.Des{})
+	RegisterType(&cryptokit.Tdes{})
 	RegisterType(&cryptokit.Cbc{})
+	RegisterType(&cryptokit.Ecb{})
+	RegisterType(&cryptokit.Gcm{})
+	RegisterType(&cryptokit.Sha1{})
+	RegisterType(&cryptokit.Sha256{})
+	RegisterType(&cryptokit.Sha512{})
+	RegisterType(&cryptokit.Hmac{})
+	RegisterType(&cryptokit.Random{})
+	RegisterType(&cryptokit.Dukpt{})
+	RegisterType(&cryptokit.FixedKey{})
 
 	RegisterCommand("echo", func(e *echoArgs) (string, error) {
-		fmt.Printf("%s%s\n", e.Text, e.TheArg2)
+		fmt.Printf("%s\n", e.Text)
 		return "", nil
 	})
 }
 
 func RegisterCommand(name string, command interface{}) {
-	fmt.Printf("Registered %s\n", name)
-
 	commands[name] = command
 }
 
@@ -37,7 +45,17 @@ func RegisterType(val interface{}) {
 		typ = typ.Elem()
 	}
 
-	RegisterCommand(transformName(typ.Name()), func(c *Command) (interface{}, error) {
+	RegisterTypeWithName(transformName(typ.Name()), val)
+}
+
+func RegisterTypeWithName(name string, val interface{}) {
+	typ := reflect.TypeOf(val)
+
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	RegisterCommand(name, func(c *Command) (interface{}, error) {
 		val := reflect.New(typ)
 		err := unmarshalCommand(val, c)
 

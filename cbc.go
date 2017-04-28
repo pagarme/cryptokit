@@ -1,8 +1,8 @@
 package cryptokit
 
 type Cbc struct {
-	Underlying Mechanism
-	IV []byte
+	Underlying Mechanism `cmd:",primary"`
+	IV         []byte
 }
 
 func (c Cbc) Name() string {
