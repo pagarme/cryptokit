@@ -63,6 +63,6 @@ func RegisterTypeWithName(name string, val interface{}) {
 			return nil, err
 		}
 
-		return val.Interface(), nil
+		return val.Elem().Interface(), nil
 	})
 }

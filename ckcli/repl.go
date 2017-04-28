@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/chzyer/readline"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/camelcase"
 )
 
@@ -81,7 +82,7 @@ func runLine(line string) error {
 		case fmt.Stringer:
 			fmt.Printf("%s\n", v)
 		default:
-			fmt.Printf("%#+v\n", v)
+			spew.Dump(v)
 		}
 	}
 
@@ -144,6 +145,17 @@ func unmarshalCommand(val reflect.Value, cmd *Command) error {
 
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
+
+		if field.Anonymous {
+			err := unmarshalCommand(val.Field(i), cmd)
+
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+
 		tag := field.Tag.Get("cmd")
 
 		values := strings.Split(tag, ",")
@@ -203,15 +215,61 @@ func unmarshalValue(val reflect.Value, input interface{}) error {
 func extractTokenValue(t *Token, value interface{}) error {
 	switch v := value.(type) {
 	case *int:
-		var data []byte
+		var data string
 
-		err := extractBytes(t, &data)
+		err := extractString(t, &data)
 
 		if err != nil {
 			return err
 		}
 
-		i, err := strconv.Atoi(string(data))
+		base := 10
+
+		if t.Type == HexLiteral {
+			base = 16
+		}
+
+		i, err := strconv.ParseInt(data, base, 32)
+
+		if err != nil {
+			return err
+		}
+
+		*v = int(i)
+
+	case *uint:
+		var data string
+
+		err := extractString(t, &data)
+
+		if err != nil {
+			return err
+		}
+
+		base := 10
+
+		if t.Type == HexLiteral {
+			base = 16
+		}
+
+		i, err := strconv.ParseUint(data, base, 32)
+
+		if err != nil {
+			return err
+		}
+
+		*v = uint(i)
+
+	case *bool:
+		var data string
+
+		err := extractString(t, &data)
+
+		if err != nil {
+			return err
+		}
+
+		i, err := strconv.ParseBool(data)
 
 		if err != nil {
 			return err
@@ -220,15 +278,7 @@ func extractTokenValue(t *Token, value interface{}) error {
 		*v = i
 
 	case *string:
-		var data []byte
-
-		err := extractBytes(t, &data)
-
-		if err != nil {
-			return err
-		}
-
-		*v = string(data)
+		return extractString(t, v)
 
 	case *[]byte:
 		return extractBytes(t, v)
@@ -239,8 +289,25 @@ func extractTokenValue(t *Token, value interface{}) error {
 	case *io.Writer:
 		return extractWriter(t, v)
 
+		// default:
+		// 	return fmt.Errorf("Invalid struct type")
+	}
+
+	return nil
+}
+
+func extractString(t *Token, v *string) error {
+	switch t.Type {
+	case PathLiteral:
+		data, err := ioutil.ReadFile(t.Text)
+
+		if err != nil {
+			return err
+		}
+
+		*v = string(data)
 	default:
-		return fmt.Errorf("Invalid struct type")
+		*v = t.Text
 	}
 
 	return nil
@@ -256,6 +323,8 @@ func extractBytes(t *Token, v *[]byte) error {
 		}
 
 		*v = data
+	case Identifier:
+		fallthrough
 	case StringLiteral:
 		*v = []byte(t.Text)
 	case PathLiteral:
@@ -283,6 +352,8 @@ func extractReader(t *Token, v *io.Reader) error {
 		}
 
 		*v = bytes.NewBuffer(data)
+	case Identifier:
+		fallthrough
 	case StringLiteral:
 		*v = strings.NewReader(t.Text)
 	case PathLiteral:
