@@ -1,16 +1,45 @@
 package soft
 
 import (
-	"errors"
 	"crypto/aes"
 	"crypto/cipher"
+	"encoding/hex"
+	"errors"
 	"github.com/boltdb/bolt"
 	"github.com/pagarme/cryptokit"
+	"net/url"
+	"path"
 )
 
 type Provider struct {
-	db *bolt.DB
+	db        *bolt.DB
 	masterKey cipher.Block
+}
+
+func init() {
+	cryptokit.RegisterProvider("soft", func(u *url.URL) (cryptokit.Provider, error) {
+		query := u.Query()
+
+		keyString, ok := query["key"]
+
+		if !ok {
+			return nil, errors.New("missing key")
+		}
+
+		key, err := hex.DecodeString(keyString[0])
+
+		if err != nil {
+			return nil, err
+		}
+
+		p, err := New(path.Join(u.Host, u.Path), key)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return p, nil
+	})
 }
 
 func New(path string, key []byte) (*Provider, error) {
@@ -20,7 +49,7 @@ func New(path string, key []byte) (*Provider, error) {
 		return nil, err
 	}
 
-	err = db.Update(func (tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte("keys")); err != nil {
 			return err
 		}
