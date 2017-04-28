@@ -1,6 +1,7 @@
 package cryptokit
 
 type Session interface {
+	ListKeys() ([]string, error)
 	FindKey(id string) (Key, bool, error)
 
 	Encrypt(mech Mechanism, key Key, in []byte) ([]byte, error)

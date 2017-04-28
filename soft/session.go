@@ -15,6 +15,27 @@ type Session struct {
 	masterKey cipher.Block
 }
 
+func (s *Session) ListKeys() ([]string, error) {
+	var keys []string
+
+	err := s.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("keys"))
+
+		b.ForEach(func(k, _ []byte) error {
+			keys = append(keys, string(k))
+			return nil
+		})
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return keys, nil
+}
+
 func (s *Session) FindKey(id string) (cryptokit.Key, bool, error) {
 	var bytes []byte
 

@@ -98,6 +98,10 @@ type hashArgs struct {
 
 var session cryptokit.Session
 
+func listKeys(a *findKeyArgs) ([]string, error) {
+	return session.ListKeys()
+}
+
 func findKey(a *findKeyArgs) (cryptokit.Key, error) {
 	k, ok, err := session.FindKey(a.ID)
 
@@ -195,6 +199,7 @@ func derive(a *deriveArgs) (cryptokit.Key, error) {
 func init() {
 	RegisterCommand("generate", generate)
 	RegisterCommand("find", findKey)
+	RegisterCommand("list", listKeys)
 	RegisterCommand("hash", hash)
 	RegisterCommand("encrypt", encrypt)
 	RegisterCommand("decrypt", decrypt)
