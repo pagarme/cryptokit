@@ -24,7 +24,7 @@ func (p *Parser) Parse() (*Command, error) {
 	}
 
 	if !ok {
-		return nil, UnexpectedToken
+		return nil, p.unexpectedToken()
 	}
 
 	return cmd, nil
@@ -59,7 +59,7 @@ func (p *Parser) matchCommand() (*Command, bool, error) {
 		} else if ok {
 			cmd.Parameters[name.Text] = value
 		} else {
-			return nil, false, UnexpectedToken
+			return nil, false, p.unexpectedToken()
 		}
 	}
 
@@ -82,7 +82,7 @@ func (p *Parser) matchValue() (interface{}, bool, error) {
 		}
 
 		if !ok {
-			return nil, false, UnexpectedToken
+			return nil, false, p.unexpectedToken()
 		}
 
 		value = cmd
@@ -144,7 +144,7 @@ func (p *Parser) mustMatch(tk **Token, typ ...TokenType) error {
 	}
 
 	if !ok {
-		return UnexpectedToken
+		return p.unexpectedToken(typ...)
 	}
 
 	return nil
@@ -166,4 +166,12 @@ func (p *Parser) next() error {
 	p.la = t
 
 	return nil
+}
+
+func (p *Parser) unexpectedToken(expected ...TokenType) error {
+	return UnexpectedToken{
+		Expected:  expected,
+		Current:   p.cur,
+		LookAhead: p.la,
+	}
 }

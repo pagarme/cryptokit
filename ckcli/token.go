@@ -4,10 +4,11 @@ import (
 	"fmt"
 )
 
+//go:generate stringer -type=TokenType
 type TokenType uint
 
 const (
-	_ TokenType = iota
+	Unknown TokenType = iota
 
 	ArgumentName
 	Identifier
@@ -15,11 +16,10 @@ const (
 	HexLiteral
 	DecimalLiteral
 	PathLiteral
-	RightParens
 	LeftParens
-	EOF
+	RightParens
 
-	Unknown
+	EOF
 )
 
 var ValueTokenTypes = []TokenType{

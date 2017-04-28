@@ -2,13 +2,12 @@ package main
 
 import (
 	"bufio"
-	"errors"
+	"fmt"
 	"io"
 	"unicode"
 )
 
 var EofChar = '\x00'
-var UnexpectedToken = errors.New("unexpected token")
 
 type Scanner struct {
 	reader *bufio.Reader
@@ -160,6 +159,14 @@ func (s *Scanner) scanNumber(t *Token) error {
 	if s.cur == '0' {
 		if s.la == 'x' || s.la == 'X' {
 			isHex = true
+
+			if err := s.nextChar(); err != nil {
+				return err
+			}
+
+			if err := s.nextChar(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -184,11 +191,11 @@ func (s *Scanner) scanCore(t *Token, test func(rune) bool) error {
 	acc := ""
 
 	for true {
-		if !test(s.cur) {
+		acc += string(s.cur)
+
+		if !test(s.la) {
 			break
 		}
-
-		acc += string(s.cur)
 
 		if err := s.nextChar(); err != nil {
 			return err
@@ -202,7 +209,7 @@ func (s *Scanner) scanCore(t *Token, test func(rune) bool) error {
 
 func (s *Scanner) match(r rune) error {
 	if s.cur != r {
-		return UnexpectedToken
+		return s.unexpectedChar(fmt.Sprintf("'%c'", r))
 	}
 
 	return s.nextChar()
@@ -248,6 +255,15 @@ func (s *Scanner) nextChar() error {
 	}
 
 	return nil
+}
+
+func (s *Scanner) unexpectedChar(expected string) error {
+	return UnexpectedChar{
+		Expected:  expected,
+		Position:  s.Position(),
+		Current:   s.cur,
+		LookAhead: s.la,
+	}
 }
 
 func isWhitespace(r rune) bool {

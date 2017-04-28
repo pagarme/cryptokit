@@ -2,10 +2,13 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/fatih/camelcase"
 )
 
 func main() {
@@ -32,7 +35,7 @@ func run() error {
 		err = runLine(line)
 
 		if err != nil {
-			fmt.Printf("Error: %#+v\n", err)
+			fmt.Printf("Error: %s\n", err)
 		}
 	}
 
@@ -110,22 +113,29 @@ func unmarshalCommand(val reflect.Value, cmd *Command) error {
 		val = val.Elem()
 	}
 
+	if typ == reflect.TypeOf(cmd).Elem() {
+		val.Set(reflect.ValueOf(cmd).Elem())
+		return nil
+	}
+
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		tag, ok := field.Tag.Lookup("cmd")
-
-		if !ok {
-			tag = field.Name
-		}
+		tag := field.Tag.Get("cmd")
 
 		values := strings.Split(tag, ",")
 		name := values[0]
 
 		if name == "" {
-			err := unmarshalValue(val.Field(i), cmd.Primary)
+			name = transformName(field.Name)
+		}
 
-			if err != nil {
-				return err
+		if len(values) > 1 && values[1] == "primary" {
+			if cmd.Primary != nil {
+				err := unmarshalValue(val.Field(i), cmd.Primary)
+
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			arg, ok := cmd.Parameters[name]
@@ -170,9 +180,27 @@ func extractTokenValue(t *Token, value interface{}) error {
 	switch v := value.(type) {
 	case *string:
 		*v = t.Text
+	case *[]byte:
+		r, err := hex.DecodeString(t.Text)
+
+		if err != nil {
+			return err
+		}
+
+		*v = r
 	default:
 		return fmt.Errorf("Invalid struct type")
 	}
 
 	return nil
+}
+
+func transformName(name string) string {
+	parts := camelcase.Split(name)
+
+	for i := range parts {
+		parts[i] = strings.ToLower(parts[i])
+	}
+
+	return strings.Join(parts, "-")
 }
