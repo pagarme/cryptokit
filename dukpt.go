@@ -1,7 +1,7 @@
 package cryptokit
 
 type Dukpt struct {
-	Ksn []byte
+	Ksn []byte `cmd:",primary"`
 }
 
 func (m Dukpt) Name() string {
