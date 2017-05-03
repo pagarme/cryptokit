@@ -1,11 +1,8 @@
 package soft
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"encoding/hex"
 	"errors"
-	"github.com/boltdb/bolt"
 	"github.com/pagarme/cryptokit"
 	"net/url"
 	"path"
@@ -16,74 +13,109 @@ import (
 )
 
 type Provider struct {
-	db        *bolt.DB
-	masterKey cipher.Block
+	db Database
+}
+
+func createSoft(u *url.URL) (cryptokit.Provider, error) {
+	query := u.Query()
+
+	keyString, ok := query["key"]
+
+	if !ok {
+		return nil, errors.New("missing key")
+	}
+
+	key, err := hex.DecodeString(keyString[0])
+
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := New(path.Join(u.Host, u.Path), key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
+
+func createSoftWithVaultHttp(u *url.URL) (cryptokit.Provider, error) {
+	return createSoftWithVault(u, false)
+}
+
+func createSoftWithVaultHttps(u *url.URL) (cryptokit.Provider, error) {
+	return createSoftWithVault(u, true)
+}
+
+func createSoftWithVault(u *url.URL, https bool) (cryptokit.Provider, error) {
+	vaultUrl := &url.URL{
+		Host: u.Host,
+	}
+
+	if https {
+		vaultUrl.Scheme = "https"
+	} else {
+		vaultUrl.Scheme = "http"
+	}
+
+	query := u.Query()
+	token, ok := query["token"]
+
+	if !ok {
+		return nil, errors.New("missing token")
+	}
+
+	p, err := NewWithVault(vaultUrl.RequestURI(), token[0], u.Path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func init() {
-	cryptokit.RegisterProvider("soft", func(u *url.URL) (cryptokit.Provider, error) {
-		query := u.Query()
-
-		keyString, ok := query["key"]
-
-		if !ok {
-			return nil, errors.New("missing key")
-		}
-
-		key, err := hex.DecodeString(keyString[0])
-
-		if err != nil {
-			return nil, err
-		}
-
-		p, err := New(path.Join(u.Host, u.Path), key)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return p, nil
-	})
+	cryptokit.RegisterProvider("soft", createSoft)
+	cryptokit.RegisterProvider("soft+vault+http", createSoftWithVaultHttp)
+	cryptokit.RegisterProvider("soft+vault+https", createSoftWithVaultHttps)
 }
 
 func New(path string, key []byte) (*Provider, error) {
-	db, err := bolt.Open(path, 0600, nil)
+	return NewWithBolt(path, key)
+}
+
+func NewWithBolt(path string, key []byte) (*Provider, error) {
+	db, err := newBoltDatabase(path, key)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.Update(func(tx *bolt.Tx) error {
-		if _, err := tx.CreateBucketIfNotExists([]byte("keys")); err != nil {
-			return err
-		}
+	return NewWithDatabase(db)
+}
 
-		return nil
-	})
+func NewWithVault(address, base, token string) (*Provider, error) {
+	// db, err := newVaultDatabase(address, base, token)
+	//
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// return NewWithDatabase(db)
+	return nil, nil
+}
 
-	if err != nil {
-		return nil, err
-	}
-
-	masterKey, err := aes.NewCipher(key)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &Provider{db, masterKey}, nil
+func NewWithDatabase(db Database) (*Provider, error) {
+	return &Provider{
+		db: db,
+	}, nil
 }
 
 func (p *Provider) OpenSession() (cryptokit.Session, error) {
-	if p.masterKey == nil {
-		return nil, errors.New("The master key isn't ready yet")
-	}
-
-	return &Session{p.db, p.masterKey}, nil
+	return &Session{db: p.db}, nil
 }
 
 func (p *Provider) Close() error {
-	p.masterKey = nil
-
 	return p.db.Close()
 }

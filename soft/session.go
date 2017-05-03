@@ -1,70 +1,29 @@
 package soft
 
 import (
-	"crypto/cipher"
 	"crypto/rand"
-	"encoding/json"
 	"errors"
-	"github.com/boltdb/bolt"
 	"github.com/pagarme/cryptokit"
 	"github.com/pagarme/cryptokit/soft/dukpt"
 )
 
 type Session struct {
-	db        *bolt.DB
-	masterKey cipher.Block
+	db Database
 }
 
 func (s *Session) ListKeys() ([]string, error) {
-	var keys []string
-
-	err := s.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("keys"))
-
-		b.ForEach(func(k, _ []byte) error {
-			keys = append(keys, string(k))
-			return nil
-		})
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return keys, nil
+	return s.db.ListKeys()
 }
 
 func (s *Session) FindKey(id string) (cryptokit.Key, bool, error) {
-	var bytes []byte
-
-	err := s.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("keys"))
-
-		bytes = b.Get([]byte(id))
-
-		return nil
-	})
+	attribs, found, err := s.db.FindKey(id)
 
 	if err != nil {
 		return nil, false, err
 	}
 
-	if bytes == nil || len(bytes) == 0 {
+	if !found {
 		return nil, false, nil
-	}
-
-	plaintext, err := s.decryptStore(bytes)
-
-	if err != nil {
-		return nil, false, err
-	}
-
-	attribs := make(map[string]interface{})
-
-	if err := json.Unmarshal(plaintext, &attribs); err != nil {
-		return nil, true, err
 	}
 
 	return loadKey(s, attribs), true, nil
@@ -220,34 +179,4 @@ func (s *Session) encryptionCore(mech cryptokit.Mechanism, key cryptokit.Key, in
 	}
 
 	return nil, errors.New("Unknown mechanism")
-}
-
-func (s *Session) encryptStore(plaintext []byte) ([]byte, error) {
-	gcm, err := cipher.NewGCM(s.masterKey)
-
-	if err != nil {
-		return nil, err
-	}
-
-	nonce := make([]byte, gcm.NonceSize())
-
-	if _, err := rand.Read(nonce); err != nil {
-		return nil, err
-	}
-
-	ciphertext := gcm.Seal(nil, nonce, plaintext, nil)
-
-	return append(nonce, ciphertext...), nil
-}
-
-func (s *Session) decryptStore(ciphertext []byte) ([]byte, error) {
-	gcm, err := cipher.NewGCM(s.masterKey)
-
-	if err != nil {
-		return nil, err
-	}
-
-	plaintext, err := gcm.Open(nil, ciphertext[:gcm.NonceSize()], ciphertext[gcm.NonceSize():], nil)
-
-	return plaintext, err
 }
