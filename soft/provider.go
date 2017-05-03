@@ -66,7 +66,7 @@ func createSoftWithVault(u *url.URL, https bool) (cryptokit.Provider, error) {
 		return nil, errors.New("missing token")
 	}
 
-	p, err := NewWithVault(vaultUrl.RequestURI(), token[0], u.Path)
+	p, err := NewWithVault(vaultUrl.String(), token[0], u.Path)
 
 	if err != nil {
 		return nil, err
@@ -95,15 +95,14 @@ func NewWithBolt(path string, key []byte) (*Provider, error) {
 	return NewWithDatabase(db)
 }
 
-func NewWithVault(address, base, token string) (*Provider, error) {
-	// db, err := newVaultDatabase(address, base, token)
-	//
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// return NewWithDatabase(db)
-	return nil, nil
+func NewWithVault(address, token, base string) (*Provider, error) {
+	db, err := newVaultDatabase(address, token, base)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return NewWithDatabase(db)
 }
 
 func NewWithDatabase(db Database) (*Provider, error) {
