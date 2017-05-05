@@ -3,9 +3,11 @@ package soft
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/pagarme/cryptokit"
 	"net/url"
+	"os"
 	"path"
+
+	"github.com/pagarme/cryptokit"
 
 	_ "crypto/sha1"
 	_ "crypto/sha256"
@@ -63,7 +65,11 @@ func createSoftWithVault(u *url.URL, https bool) (cryptokit.Provider, error) {
 	token, ok := query["token"]
 
 	if !ok {
-		return nil, errors.New("missing token")
+
+		token = append(token, os.Getenv("VAULT_TOKEN"))
+		if len(token[0]) == 0 {
+			return nil, errors.New("missing token, it may come from provider url query string parameter \"token\" or from VAULT_TOKEN environment variable")
+		}
 	}
 
 	p, err := NewWithVault(vaultUrl.String(), token[0], u.Path)
