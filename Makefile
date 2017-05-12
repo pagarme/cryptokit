@@ -1,9 +1,10 @@
-deps:
-	@go get golang.org/x/tools/cmd/cover
+travis-deps:
 	@go get github.com/mattn/goveralls
 	@go get github.com/wadey/gocovmerge
+	@curl https://glide.sh/get | sh
+	@glide up
 
-test: deps
+test:
 	@echo Running tests
 	$(eval PKGS := $(shell go list ./... | grep -v /vendor/))
 	$(eval PKGS_DELIM := $(shell echo $(PKGS) | sed -e 's/ /,/g'))
@@ -11,5 +12,4 @@ test: deps
 	@gocovmerge `ls *.coverprofile` > coverage.out
 	@rm *.coverprofile
 
-.PHONY: test
-
+.PHONY: test trevis-deps

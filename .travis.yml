@@ -4,6 +4,7 @@ go:
   - 1.8
 
 script:
+  - make travis-deps
   - make test
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 

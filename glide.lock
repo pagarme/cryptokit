@@ -1,5 +1,5 @@
 hash: e04d7413196eddd464eec2bf33a0f4f78db50321212f2aa4b61f51c11743f4a3
-updated: 2017-05-12T18:04:27.111963463-03:00
+updated: 2017-05-13T04:39:51.875675604-03:00
 imports:
 - name: github.com/boltdb/bolt
   version: 583e8937c61f1af6513608ccc75c97b6abdf4ff9
@@ -12,8 +12,6 @@ imports:
   subpackages:
   - spew
 - name: github.com/docopt/docopt-go
-  version: 784ddc588536785e7299f7272f39101f7faccc3f
-- name: github.com/docopt/docopt.go
   version: 784ddc588536785e7299f7272f39101f7faccc3f
 - name: github.com/fatih/camelcase
   version: f6a740d52f961c60348ebb109adde9f4635d7540
