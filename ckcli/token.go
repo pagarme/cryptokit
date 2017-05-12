@@ -22,14 +22,6 @@ const (
 	EOF
 )
 
-var ValueTokenTypes = []TokenType{
-	Identifier,
-	StringLiteral,
-	HexLiteral,
-	DecimalLiteral,
-	PathLiteral,
-}
-
 type Position struct {
 	Line, Column int
 }

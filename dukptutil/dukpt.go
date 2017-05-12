@@ -179,34 +179,6 @@ func splitBdkXor(ctx climax.Context) int {
 	return 0
 }
 
-func bdkKcv(ctx climax.Context) int {
-	fmt.Printf("Enter key part: ")
-	part, err := askHex()
-
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return -1
-	}
-
-	if len(part) != 16 {
-		fmt.Printf("Key too small\n")
-		return -1
-	}
-
-	kcv, err := dukpt.CalculateKcv(part)
-
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return -1
-	}
-
-	kcvStr := hex.EncodeToString(kcv)
-
-	fmt.Printf("KCV: %s\n", kcvStr)
-
-	return 0
-}
-
 func derivedBdkKcv(ctx climax.Context) int {
 	bdk, err := deriveBdk(ctx.Is("use-sss"))
 

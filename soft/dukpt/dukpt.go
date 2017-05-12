@@ -231,10 +231,3 @@ func decodeInt64(b []byte) (result uint64) {
 	binary.Read(buffer, binary.BigEndian, &result)
 	return
 }
-
-func encodeInt64(b uint64) (result []byte) {
-	result = make([]byte, 8)
-	buffer := bytes.NewBuffer(result)
-	binary.Write(buffer, binary.BigEndian, b)
-	return
-}
