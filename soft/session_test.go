@@ -2,10 +2,11 @@ package soft
 
 import (
 	"encoding/hex"
-	"github.com/pagarme/cryptokit"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/pagarme/cryptokit"
+	"github.com/stretchr/testify/assert"
 )
 
 var wrongKey = []byte{1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 95, 16, 17, 18, 19, 255, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
@@ -129,8 +130,8 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Ecb{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -138,8 +139,8 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Ecb{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -168,8 +169,8 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -177,8 +178,8 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -207,9 +208,9 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Gcm{
-		cryptokit.Aes{},
-		[]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-		nil,
+		Underlying:     cryptokit.Aes{},
+		Nonce:          []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+		AdditionalData: nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -217,9 +218,9 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Gcm{
-		cryptokit.Aes{},
-		[]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-		nil,
+		Underlying:     cryptokit.Aes{},
+		Nonce:          []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+		AdditionalData: nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -248,8 +249,8 @@ func TestDesEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
-		cryptokit.Des{},
-		nil,
+		Underlying: cryptokit.Des{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -257,8 +258,8 @@ func TestDesEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Cbc{
-		cryptokit.Des{},
-		nil,
+		Underlying: cryptokit.Des{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -287,8 +288,8 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
-		cryptokit.Tdes{},
-		nil,
+		Underlying: cryptokit.Tdes{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -296,8 +297,8 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Cbc{
-		cryptokit.Tdes{},
-		nil,
+		Underlying: cryptokit.Tdes{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -420,8 +421,8 @@ func TestWrapUnwrap(t *testing.T) {
 	})
 
 	ciphertext, err := s.Wrap(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, wrapping, key)
 
 	assert.Nil(t, err, "An error during Wrapping")
@@ -429,8 +430,8 @@ func TestWrapUnwrap(t *testing.T) {
 	assert.NotEqual(t, ciphertext, keyData, "Plaintext must be different from ciphertext")
 
 	key2, err := s.Unwrap(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, wrapping, ciphertext, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration2",
 		Type:         cryptokit.AesKey,

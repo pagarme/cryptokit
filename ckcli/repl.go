@@ -54,8 +54,6 @@ func runRepl() error {
 			fmt.Printf("Error: %s\n", err)
 		}
 	}
-
-	return nil
 }
 
 func runLine(line string) error {
