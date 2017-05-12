@@ -131,7 +131,7 @@ func splitBdkXor(ctx climax.Context) int {
 	for i := 0; i < len(secrets)-1; i++ {
 		s := make([]byte, 16)
 
-		if _, err := rand.Read(s); err != nil {
+		if _, err = rand.Read(s); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			return -1
 		}
@@ -146,7 +146,8 @@ func splitBdkXor(ctx climax.Context) int {
 	fmt.Printf("\n")
 
 	for i, v := range secrets {
-		kcv, err := dukpt.CalculateKcv(v)
+		var kcv []byte
+		kcv, err = dukpt.CalculateKcv(v)
 
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)

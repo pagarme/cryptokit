@@ -22,7 +22,7 @@ func newBoltDatabase(path string, key []byte) (*boltDatabase, error) {
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		if _, err := tx.CreateBucketIfNotExists([]byte("keys")); err != nil {
+		if _, err = tx.CreateBucketIfNotExists([]byte("keys")); err != nil {
 			return err
 		}
 
