@@ -69,7 +69,7 @@ func processHmac(mech cryptokit.Hmac, key cryptokit.Key, in []byte, encrypt bool
 	}
 
 	h := hmac.New(impl.New, skey.data)
-	h.Write(in)
+	_, _ = h.Write(in)
 
 	return h.Sum(nil), nil
 }

@@ -12,7 +12,9 @@ import (
 var wrongKey = []byte{1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 95, 16, 17, 18, 19, 255, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
 
 func TestWrongMasterKey(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, err := New("testdb.db", testKey)
 	assert.Nil(t, err, "New returned an error")
@@ -63,7 +65,9 @@ func TestWrongMasterKey(t *testing.T) {
 }
 
 func TestKeyGenerationAndLifetime(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, err := New("testdb.db", testKey)
 	assert.Nil(t, err, "New returned an error")
@@ -110,13 +114,17 @@ func TestKeyGenerationAndLifetime(t *testing.T) {
 }
 
 func TestEcbEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
@@ -149,13 +157,17 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 }
 
 func TestAesEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
@@ -188,13 +200,17 @@ func TestAesEncryptionDecryption(t *testing.T) {
 }
 
 func TestGcmEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
@@ -229,13 +245,17 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 }
 
 func TestDesEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
@@ -268,13 +288,17 @@ func TestDesEncryptionDecryption(t *testing.T) {
 }
 
 func TestTdesEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
@@ -307,13 +331,17 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 }
 
 func TestSha1(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	plaintext := []byte("lol")
 
@@ -325,13 +353,17 @@ func TestSha1(t *testing.T) {
 }
 
 func TestSha256(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	plaintext := []byte("lol")
 
@@ -343,13 +375,17 @@ func TestSha256(t *testing.T) {
 }
 
 func TestSha512(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	plaintext := []byte("lol")
 
@@ -361,13 +397,17 @@ func TestSha512(t *testing.T) {
 }
 
 func TestHmac(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	key, _ := s.Generate(cryptokit.FixedKey{
 		Key: []byte("test"),
@@ -392,13 +432,17 @@ func TestHmac(t *testing.T) {
 }
 
 func TestWrapUnwrap(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, _ := New("testdb.db", testKey)
 	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",

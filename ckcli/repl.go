@@ -37,7 +37,9 @@ func runRepl() error {
 		return err
 	}
 
-	defer l.Close()
+	defer func() {
+		_ = l.Close()
+	}()
 
 	log.SetOutput(os.Stderr)
 

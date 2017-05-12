@@ -228,6 +228,6 @@ func desEncrypt(dst, data, key []byte) error {
 
 func decodeInt64(b []byte) (result uint64) {
 	buffer := bytes.NewBuffer(b)
-	binary.Read(buffer, binary.BigEndian, &result)
+	_ = binary.Read(buffer, binary.BigEndian, &result)
 	return
 }

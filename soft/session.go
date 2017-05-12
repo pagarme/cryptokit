@@ -139,7 +139,7 @@ func (s *Session) Hash(mech cryptokit.Mechanism, in []byte) ([]byte, error) {
 	}
 
 	h := hash.New()
-	h.Write(in)
+	_, _ = h.Write(in)
 
 	return h.Sum(nil), nil
 }

@@ -214,8 +214,10 @@ Options:
 		return
 	}
 
-	defer session.Close()
-	defer p.Close()
+	defer func() {
+		_ = session.Close()
+		_ = p.Close()
+	}()
 
 	err = runRepl()
 
