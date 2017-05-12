@@ -112,13 +112,13 @@ func TestKeyGenerationAndLifetime(t *testing.T) {
 func TestEcbEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -151,13 +151,13 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 func TestAesEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -190,13 +190,13 @@ func TestAesEncryptionDecryption(t *testing.T) {
 func TestGcmEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -231,13 +231,13 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 func TestDesEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.DesKey,
 		Length:       8,
@@ -270,13 +270,13 @@ func TestDesEncryptionDecryption(t *testing.T) {
 func TestTdesEncryptionDecryption(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.TdesKey,
 		Length:       24,
@@ -309,8 +309,8 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 func TestSha1(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
@@ -327,8 +327,8 @@ func TestSha1(t *testing.T) {
 func TestSha256(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
@@ -345,8 +345,8 @@ func TestSha256(t *testing.T) {
 func TestSha512(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
@@ -363,13 +363,13 @@ func TestSha512(t *testing.T) {
 func TestHmac(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(cryptokit.FixedKey{
+	key, _ := s.Generate(cryptokit.FixedKey{
 		Key: []byte("test"),
 	}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
@@ -394,13 +394,13 @@ func TestHmac(t *testing.T) {
 func TestWrapUnwrap(t *testing.T) {
 	defer os.Remove("testdb.db")
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
 	defer p.Close()
 	defer s.Close()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -411,7 +411,7 @@ func TestWrapUnwrap(t *testing.T) {
 
 	keyData, _ := key.Extract()
 
-	wrapping, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	wrapping, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "WrappingKey",
 		Type:         cryptokit.AesKey,
 		Length:       32,
