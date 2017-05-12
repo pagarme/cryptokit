@@ -178,19 +178,13 @@ func (s *Scanner) scanNumber(t *Token) error {
 		t.Type = DecimalLiteral
 	}
 
-	err := s.scanCore(t, test)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.scanCore(t, test)
 }
 
 func (s *Scanner) scanCore(t *Token, test func(rune) bool) error {
 	acc := ""
 
-	for true {
+	for {
 		acc += string(s.cur)
 
 		if !test(s.la) {
@@ -216,7 +210,7 @@ func (s *Scanner) match(r rune) error {
 }
 
 func (s *Scanner) skipWhitespace() error {
-	for true {
+	for {
 		err := s.nextChar()
 
 		if err != nil {

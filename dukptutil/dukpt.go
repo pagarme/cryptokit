@@ -208,7 +208,7 @@ func deriveBdk(useSss bool) ([]byte, error) {
 		count := 1
 		secrets := make([]string, 0)
 
-		for true {
+		for {
 			secret := ""
 
 			fmt.Printf("Enter key part #%d (empty to end): ", count)
@@ -228,7 +228,7 @@ func deriveBdk(useSss bool) ([]byte, error) {
 	count := 1
 	bdk := make([]byte, 16)
 
-	for true {
+	for {
 		fmt.Printf("Enter key part #%d (empty to end): ", count)
 		part, err := askHex()
 
