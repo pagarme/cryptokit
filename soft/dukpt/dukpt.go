@@ -2,6 +2,7 @@ package dukpt
 
 import (
 	"bytes"
+	// #nosec
 	"crypto/des"
 	"encoding/binary"
 	"unsafe"
@@ -14,11 +15,11 @@ type Ksn struct {
 }
 
 var (
-	REG3_MASK      uint64 = 0x1FFFFF
-	SHIFT_REG_MASK uint64 = 0x100000
-	REG8_MASK      uint64 = 0xFFFFFFFFFFE00000
-	KEY_MASK              = []byte{0xC0, 0xC0, 0xC0, 0xC0, 0x00, 0x00, 0x00, 0x00, 0xC0, 0xC0, 0xC0, 0xC0, 0x00, 0x00, 0x00, 0x00}
-	PEK_MASK              = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF}
+	Reg3Mask     uint64 = 0x1FFFFF
+	ShiftRegMask uint64 = 0x100000
+	Reg8Mask     uint64 = 0xFFFFFFFFFFE00000
+	KeyMask             = []byte{0xC0, 0xC0, 0xC0, 0xC0, 0x00, 0x00, 0x00, 0x00, 0xC0, 0xC0, 0xC0, 0xC0, 0x00, 0x00, 0x00, 0x00}
+	PekMask             = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF}
 )
 
 // This isn't official as there is no specification on how to build the KSI
@@ -86,7 +87,7 @@ func DeriveIpekFromBdk(bdk []byte, ksn []byte) ([]byte, error) {
 	ExtractKsnWithoutCounter(ksn, cleared)
 
 	// Xor the BDK for the second key
-	xorWords(xored, bdk, KEY_MASK)
+	xorWords(xored, bdk, KeyMask)
 
 	if err := tdesEncrypt(ipek[0:8], cleared, bdk); err != nil {
 		return nil, err
@@ -106,7 +107,7 @@ func DerivePekFromIpek(ipek []byte, ksn []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	xorWords(key, key, PEK_MASK)
+	xorWords(key, key, PekMask)
 
 	return key, nil
 }
@@ -132,10 +133,11 @@ func deriveKey(dst, ipek, ksn []byte) error {
 	reg8[6] = 0
 	reg8[5] &= 0xE0
 
-	counter := decodeInt64(ksn[2:]) & REG3_MASK
+	counter := decodeInt64(ksn[2:]) & Reg3Mask
 
-	for shiftReg = SHIFT_REG_MASK; shiftReg != 0; shiftReg >>= 1 {
+	for shiftReg = ShiftRegMask; shiftReg != 0; shiftReg >>= 1 {
 		if shiftReg&counter != 0 {
+			// #nosec
 			ptr := *(*[8]byte)(unsafe.Pointer(&shiftReg))
 
 			reg8[5] |= ptr[2]
@@ -156,7 +158,7 @@ func keygen(dst, key, ksn []byte) error {
 	temp := make([]byte, 16)
 
 	// Xor the key for the second key
-	xorWords(xored, key, KEY_MASK)
+	xorWords(xored, key, KeyMask)
 
 	if err := encryptRegister(temp[0:8], xored, ksn); err != nil {
 		return err
@@ -203,6 +205,7 @@ func buildTdesKey(key []byte) []byte {
 }
 
 func tdesEncrypt(dst, data, key []byte) error {
+	// #nosec
 	block, err := des.NewTripleDESCipher(buildTdesKey(key))
 
 	if err != nil {
@@ -215,6 +218,7 @@ func tdesEncrypt(dst, data, key []byte) error {
 }
 
 func desEncrypt(dst, data, key []byte) error {
+	// #nosec
 	block, err := des.NewCipher(key)
 
 	if err != nil {
@@ -228,13 +232,6 @@ func desEncrypt(dst, data, key []byte) error {
 
 func decodeInt64(b []byte) (result uint64) {
 	buffer := bytes.NewBuffer(b)
-	binary.Read(buffer, binary.BigEndian, &result)
-	return
-}
-
-func encodeInt64(b uint64) (result []byte) {
-	result = make([]byte, 8)
-	buffer := bytes.NewBuffer(result)
-	binary.Write(buffer, binary.BigEndian, b)
+	_ = binary.Read(buffer, binary.BigEndian, &result)
 	return
 }

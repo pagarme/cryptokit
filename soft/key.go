@@ -3,6 +3,7 @@ package soft
 import (
 	"encoding/base64"
 	"errors"
+
 	"github.com/pagarme/cryptokit"
 )
 

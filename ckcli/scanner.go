@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-var EofChar = '\x00'
+var EOFChar = '\x00'
 
 type Scanner struct {
 	reader *bufio.Reader
@@ -15,7 +15,6 @@ type Scanner struct {
 	la     rune
 	line   int
 	column int
-	eof    bool
 }
 
 func NewScanner(r io.Reader) *Scanner {
@@ -38,7 +37,7 @@ func (s *Scanner) Next() (*Token, error) {
 		Start: s.Position(),
 	}
 
-	if s.cur == EofChar {
+	if s.cur == EOFChar {
 		token.Type = EOF
 	} else if unicode.IsSpace(s.cur) {
 		return s.Next()
@@ -178,19 +177,13 @@ func (s *Scanner) scanNumber(t *Token) error {
 		t.Type = DecimalLiteral
 	}
 
-	err := s.scanCore(t, test)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.scanCore(t, test)
 }
 
 func (s *Scanner) scanCore(t *Token, test func(rune) bool) error {
 	acc := ""
 
-	for true {
+	for {
 		acc += string(s.cur)
 
 		if !test(s.la) {
@@ -216,7 +209,7 @@ func (s *Scanner) match(r rune) error {
 }
 
 func (s *Scanner) skipWhitespace() error {
-	for true {
+	for {
 		err := s.nextChar()
 
 		if err != nil {
@@ -235,7 +228,7 @@ func (s *Scanner) nextChar() error {
 	r, _, err := s.reader.ReadRune()
 
 	if err == io.EOF {
-		r = EofChar
+		r = EOFChar
 	} else if err != nil {
 		return err
 	}

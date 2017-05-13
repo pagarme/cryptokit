@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
 	"github.com/SSSaaS/sssa-golang"
 	"github.com/buger/goterm"
 	"github.com/pagarme/cryptokit/soft/dukpt"
@@ -77,14 +78,26 @@ func splitBdkSss(ctx climax.Context) int {
 	}
 
 	fmt.Printf("Enter the number of shares: ")
-	fmt.Scanf("%d\n", &shares)
+	_, err = fmt.Scanf("%d\n", &shares)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	fmt.Printf("Enter the minimum number of shares: ")
-	fmt.Scanf("%d\n", &min)
+	_, err = fmt.Scanf("%d\n", &min)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	fmt.Printf("\n")
 
-	secrets := sssa.Create(min, shares, hex.EncodeToString(bdk))
+	secrets, err := sssa.Create(min, shares, hex.EncodeToString(bdk))
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	for i, v := range secrets {
 		clearScreen()
@@ -92,7 +105,11 @@ func splitBdkSss(ctx climax.Context) int {
 		fmt.Printf("Secret #%d: %s\n\n", i, v)
 		fmt.Printf("Write it down as press enter to continue to the next part.\n")
 
-		fmt.Scanf("\n")
+		_, err = fmt.Scanf("\n")
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return -1
+		}
 	}
 
 	clearScreen()
@@ -122,7 +139,11 @@ func splitBdkXor(ctx climax.Context) int {
 	}
 
 	fmt.Printf("Enter the number of shares: ")
-	fmt.Scanf("%d\n", &shares)
+	_, err = fmt.Scanf("%d\n", &shares)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	secrets := make([][]byte, shares)
 	final := make([]byte, 16)
@@ -130,7 +151,7 @@ func splitBdkXor(ctx climax.Context) int {
 	for i := 0; i < len(secrets)-1; i++ {
 		s := make([]byte, 16)
 
-		if _, err := rand.Read(s); err != nil {
+		if _, err = rand.Read(s); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			return -1
 		}
@@ -145,7 +166,8 @@ func splitBdkXor(ctx climax.Context) int {
 	fmt.Printf("\n")
 
 	for i, v := range secrets {
-		kcv, err := dukpt.CalculateKcv(v)
+		var kcv []byte
+		kcv, err = dukpt.CalculateKcv(v)
 
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
@@ -160,7 +182,11 @@ func splitBdkXor(ctx climax.Context) int {
 		fmt.Printf("Secret #%d: %s (KCV = %s)\n", i, secretStr, kcvStr)
 		fmt.Printf("Write it down as press enter to continue to the next part.\n")
 
-		fmt.Scanf("\n")
+		_, err = fmt.Scanf("\n")
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return -1
+		}
 	}
 
 	clearScreen()
@@ -175,34 +201,6 @@ func splitBdkXor(ctx climax.Context) int {
 	kcvStr := hex.EncodeToString(kcv)
 
 	fmt.Printf("BDK KCV: %s\n", kcvStr)
-
-	return 0
-}
-
-func bdkKcv(ctx climax.Context) int {
-	fmt.Printf("Enter key part: ")
-	part, err := askHex()
-
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return -1
-	}
-
-	if len(part) != 16 {
-		fmt.Printf("Key too small\n")
-		return -1
-	}
-
-	kcv, err := dukpt.CalculateKcv(part)
-
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return -1
-	}
-
-	kcvStr := hex.EncodeToString(kcv)
-
-	fmt.Printf("KCV: %s\n", kcvStr)
 
 	return 0
 }
@@ -234,11 +232,15 @@ func deriveBdk(useSss bool) ([]byte, error) {
 		count := 1
 		secrets := make([]string, 0)
 
-		for true {
+		for {
 			secret := ""
 
 			fmt.Printf("Enter key part #%d (empty to end): ", count)
-			fmt.Scanf("%s\n", &secret)
+			_, err := fmt.Scanf("%s\n", &secret)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				return nil, err
+			}
 
 			if secret == "" {
 				break
@@ -248,55 +250,63 @@ func deriveBdk(useSss bool) ([]byte, error) {
 			count++
 		}
 
-		return hex.DecodeString(sssa.Combine(secrets))
-	} else {
-		count := 1
-		bdk := make([]byte, 16)
+		str, err := sssa.Combine(secrets)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return nil, err
+		}
+		return hex.DecodeString(str)
+	}
 
-		for true {
-			fmt.Printf("Enter key part #%d (empty to end): ", count)
-			part, err := askHex()
+	count := 1
+	bdk := make([]byte, 16)
 
-			if err != nil {
-				return nil, err
-			}
+	for {
+		fmt.Printf("Enter key part #%d (empty to end): ", count)
+		part, err := askHex()
 
-			if len(part) == 0 {
-				break
-			} else if len(part) != 16 {
-				return nil, errors.New("Key tool small")
-			}
-
-			fmt.Printf("Enter key part #%d KCV: ", count)
-			kcv, err := askHex()
-
-			if err != nil {
-				return nil, err
-			}
-
-			computedKcv, err := dukpt.CalculateKcv(part)
-
-			if !compareKcv(kcv, computedKcv) {
-				return nil, errors.New("Keys doesn't match")
-			}
-
-			if err != nil {
-				return nil, err
-			}
-
-			xorArray(bdk, bdk, part)
-
-			count++
+		if err != nil {
+			return nil, err
 		}
 
-		return bdk, nil
+		if len(part) == 0 {
+			break
+		} else if len(part) != 16 {
+			return nil, errors.New("Key tool small")
+		}
+
+		fmt.Printf("Enter key part #%d KCV: ", count)
+		kcv, err := askHex()
+
+		if err != nil {
+			return nil, err
+		}
+
+		computedKcv, err := dukpt.CalculateKcv(part)
+
+		if !compareKcv(kcv, computedKcv) {
+			return nil, errors.New("Keys doesn't match")
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		xorArray(bdk, bdk, part)
+
+		count++
 	}
+
+	return bdk, nil
 }
 
 func askHex() ([]byte, error) {
 	str := ""
 
-	fmt.Scanf("%s\n", &str)
+	_, err := fmt.Scanf("%s\n", &str)
+	if err != nil {
+		return nil, err
+	}
 
 	if str == "" {
 		return []byte{}, nil

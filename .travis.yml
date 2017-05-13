@@ -3,7 +3,11 @@ language: go
 go:
   - 1.8
 
+install:
+  - make travis-deps
+
 script:
+  - make metalinter
   - make test
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 

@@ -45,7 +45,7 @@ func (p *Parser) matchCommand() (*Command, bool, error) {
 		cmd.Primary = value
 	}
 
-	for true {
+	for {
 		var name *Token
 
 		if ok, err := p.match(&name, ArgumentName); err != nil {

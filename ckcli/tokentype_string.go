@@ -4,13 +4,13 @@ package main
 
 import "fmt"
 
-const _TokenType_name = "UnknownArgumentNameIdentifierStringLiteralHexLiteralDecimalLiteralPathLiteralLeftParensRightParensEOF"
+const _TokenTypeName = "UnknownArgumentNameIdentifierStringLiteralHexLiteralDecimalLiteralPathLiteralLeftParensRightParensEOF"
 
-var _TokenType_index = [...]uint8{0, 7, 19, 29, 42, 52, 66, 77, 87, 98, 101}
+var _TokenTypeIndex = [...]uint8{0, 7, 19, 29, 42, 52, 66, 77, 87, 98, 101}
 
 func (i TokenType) String() string {
-	if i >= TokenType(len(_TokenType_index)-1) {
+	if i >= TokenType(len(_TokenTypeIndex)-1) {
 		return fmt.Sprintf("TokenType(%d)", i)
 	}
-	return _TokenType_name[_TokenType_index[i]:_TokenType_index[i+1]]
+	return _TokenTypeName[_TokenTypeIndex[i]:_TokenTypeIndex[i+1]]
 }

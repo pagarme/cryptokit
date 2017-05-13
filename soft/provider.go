@@ -42,23 +42,23 @@ func createSoft(u *url.URL) (cryptokit.Provider, error) {
 	return p, nil
 }
 
-func createSoftWithVaultHttp(u *url.URL) (cryptokit.Provider, error) {
+func createSoftWithVaultHTTP(u *url.URL) (cryptokit.Provider, error) {
 	return createSoftWithVault(u, false)
 }
 
-func createSoftWithVaultHttps(u *url.URL) (cryptokit.Provider, error) {
+func createSoftWithVaultHTTPS(u *url.URL) (cryptokit.Provider, error) {
 	return createSoftWithVault(u, true)
 }
 
 func createSoftWithVault(u *url.URL, https bool) (cryptokit.Provider, error) {
-	vaultUrl := &url.URL{
+	vaultURL := &url.URL{
 		Host: u.Host,
 	}
 
 	if https {
-		vaultUrl.Scheme = "https"
+		vaultURL.Scheme = "https"
 	} else {
-		vaultUrl.Scheme = "http"
+		vaultURL.Scheme = "http"
 	}
 
 	query := u.Query()
@@ -72,7 +72,7 @@ func createSoftWithVault(u *url.URL, https bool) (cryptokit.Provider, error) {
 		}
 	}
 
-	p, err := NewWithVault(vaultUrl.String(), token[0], u.Path)
+	p, err := NewWithVault(vaultURL.String(), token[0], u.Path)
 
 	if err != nil {
 		return nil, err
@@ -83,8 +83,8 @@ func createSoftWithVault(u *url.URL, https bool) (cryptokit.Provider, error) {
 
 func init() {
 	cryptokit.RegisterProvider("soft", createSoft)
-	cryptokit.RegisterProvider("soft+vault+http", createSoftWithVaultHttp)
-	cryptokit.RegisterProvider("soft+vault+https", createSoftWithVaultHttps)
+	cryptokit.RegisterProvider("soft+vault+http", createSoftWithVaultHTTP)
+	cryptokit.RegisterProvider("soft+vault+https", createSoftWithVaultHTTPS)
 }
 
 func New(path string, key []byte) (*Provider, error) {

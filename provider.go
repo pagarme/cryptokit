@@ -19,13 +19,13 @@ func RegisterProvider(name string, factory ProviderFactory) {
 }
 
 func Create(uri string) (Provider, error) {
-	providerUri, err := url.Parse(uri)
+	providerURI, err := url.Parse(uri)
 
 	if err != nil {
 		return nil, err
 	}
 
-	name := providerUri.Scheme
+	name := providerURI.Scheme
 
 	factory, ok := providers[name]
 
@@ -33,5 +33,5 @@ func Create(uri string) (Provider, error) {
 		return nil, errors.New("provider not found")
 	}
 
-	return factory(providerUri)
+	return factory(providerURI)
 }

@@ -4,9 +4,11 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	// #nosec
 	"crypto/des"
 	"crypto/hmac"
 	"errors"
+
 	"github.com/pagarme/cryptokit"
 )
 
@@ -25,9 +27,9 @@ func processAead(mech cryptokit.Gcm, key cryptokit.Key, in []byte, encrypt bool)
 
 	if encrypt {
 		return aead.Seal(nil, mech.Nonce, in, mech.AdditionalData), nil
-	} else {
-		return aead.Open(nil, mech.Nonce, in, mech.AdditionalData)
 	}
+
+	return aead.Open(nil, mech.Nonce, in, mech.AdditionalData)
 }
 
 func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {
@@ -68,7 +70,7 @@ func processHmac(mech cryptokit.Hmac, key cryptokit.Key, in []byte, encrypt bool
 	}
 
 	h := hmac.New(impl.New, skey.data)
-	h.Write(in)
+	_, _ = h.Write(in)
 
 	return h.Sum(nil), nil
 }
@@ -93,8 +95,10 @@ func getImplementation(mech cryptokit.Mechanism, key cryptokit.Key) (cipher.Bloc
 	case cryptokit.Aes:
 		return aes.NewCipher(skey.data)
 	case cryptokit.Des:
+		// #nosec
 		return des.NewCipher(skey.data)
 	case cryptokit.Tdes:
+		// #nosec
 		return des.NewTripleDESCipher(skey.data)
 	}
 

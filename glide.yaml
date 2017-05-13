@@ -1,0 +1,27 @@
+package: github.com/pagarme/cryptokit
+import:
+- package: github.com/SSSaaS/sssa-golang
+  version: d37d7782d75282e29cd0a208511f339bfc7eccb0
+- package: github.com/boltdb/bolt
+  version: v1.3.0
+- package: github.com/buger/goterm
+  version: bc6c333206f446a53cac4db5d2e6a4316139d737
+- package: github.com/chzyer/readline
+  version: v1.4
+- package: github.com/davecgh/go-spew
+  version: v1.1.0
+  subpackages:
+  - spew
+- package: github.com/docopt/docopt-go
+  version: 0.6.2
+- package: github.com/fatih/camelcase
+  version: f6a740d52f961c60348ebb109adde9f4635d7540
+- package: github.com/tucnak/climax
+  version: 4c021a579ddac03b8a085bebcb87d66c072341ef
+- package: github.com/hashicorp/vault
+  version: v0.6.5
+testImport:
+- package: github.com/stretchr/testify
+  version: v1.1.4
+  subpackages:
+  - assert

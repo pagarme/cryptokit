@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/docopt/docopt.go"
+	"github.com/docopt/docopt-go"
 	"github.com/pagarme/cryptokit"
 
 	_ "github.com/pagarme/cryptokit/soft"
@@ -21,14 +21,6 @@ type encryptArgs struct {
 	Key  cryptokit.Key
 	In   []byte
 	Out  io.Writer
-}
-
-type translateArgs struct {
-	Mech   cryptokit.Mechanism `cmd:",primary"`
-	InKey  cryptokit.Key
-	In     []byte
-	OutKey cryptokit.Key
-	Out    io.Writer
 }
 
 type wrapArgs struct {
@@ -83,13 +75,6 @@ type generateArgs struct {
 	Mech cryptokit.Mechanism `cmd:",primary"`
 }
 
-type deriveArgs struct {
-	keyAttributesArgs
-
-	Mech cryptokit.Mechanism `cmd:",primary"`
-	Key  cryptokit.Key
-}
-
 type hashArgs struct {
 	Mech cryptokit.Mechanism `cmd:",primary"`
 	In   []byte
@@ -98,7 +83,7 @@ type hashArgs struct {
 
 var session cryptokit.Session
 
-func listKeys(a *findKeyArgs) ([]string, error) {
+func listKeys() ([]string, error) {
 	return session.ListKeys()
 }
 
@@ -164,22 +149,6 @@ func decrypt(a *encryptArgs) ([]byte, error) {
 	return nil, err
 }
 
-func translate(a *translateArgs) ([]byte, error) {
-	result, err := session.Translate(a.Mech, a.InKey, a.In, a.OutKey)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if a.Out == nil {
-		return result, nil
-	}
-
-	_, err = a.Out.Write(result)
-
-	return nil, err
-}
-
 func generate(a *generateArgs) (cryptokit.Key, error) {
 	return session.Generate(a.Mech, a.BuildAttributes())
 }
@@ -190,10 +159,6 @@ func wrap(a *wrapArgs) ([]byte, error) {
 
 func unwrap(a *unwrapArgs) (cryptokit.Key, error) {
 	return session.Unwrap(a.Mech, a.Kek, a.In, a.BuildAttributes())
-}
-
-func derive(a *deriveArgs) (cryptokit.Key, error) {
-	return session.Derive(a.Mech, a.Key, a.BuildAttributes())
 }
 
 func init() {
@@ -209,10 +174,10 @@ func init() {
 
 func main() {
 	usage := `Cryptokit CLI
-	
+
 Usage:
 	ckcli <url>
-	
+
 Options:
 	-h --help	Show this text.
 	--version	Show version.`
@@ -249,8 +214,10 @@ Options:
 		return
 	}
 
-	defer session.Close()
-	defer p.Close()
+	defer func() {
+		_ = session.Close()
+		_ = p.Close()
+	}()
 
 	err = runRepl()
 

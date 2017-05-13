@@ -5,7 +5,7 @@ import (
 )
 
 type ecbBlockMode struct {
-	impl cipher.Block
+	impl    cipher.Block
 	encrypt bool
 }
 

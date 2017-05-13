@@ -2,16 +2,19 @@ package soft
 
 import (
 	"encoding/hex"
-	"github.com/pagarme/cryptokit"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/pagarme/cryptokit"
+	"github.com/stretchr/testify/assert"
 )
 
 var wrongKey = []byte{1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 95, 16, 17, 18, 19, 255, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
 
 func TestWrongMasterKey(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, err := New("testdb.db", testKey)
 	assert.Nil(t, err, "New returned an error")
@@ -30,14 +33,14 @@ func TestWrongMasterKey(t *testing.T) {
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	assert.Nil(t, err, "An error ocurred generating the key")
+	assert.Nil(t, err, "An error occurred generating the key")
 	assert.NotNil(t, key, "A nil key was returned")
 
 	err = s.Close()
-	assert.Nil(t, err, "An error ocurred when closing the session")
+	assert.Nil(t, err, "An error occurred when closing the session")
 
 	err = p.Close()
-	assert.Nil(t, err, "An error ocurred when closing the provider")
+	assert.Nil(t, err, "An error occurred when closing the provider")
 
 	// Open again, with the wrong key
 	p, err = New("testdb.db", wrongKey)
@@ -55,14 +58,16 @@ func TestWrongMasterKey(t *testing.T) {
 	assert.False(t, found, "The key wasn found")
 
 	err = s.Close()
-	assert.Nil(t, err, "An error ocurred when closing the session")
+	assert.Nil(t, err, "An error occurred when closing the session")
 
 	err = p.Close()
-	assert.Nil(t, err, "An error ocurred when closing the provider")
+	assert.Nil(t, err, "An error occurred when closing the provider")
 }
 
 func TestKeyGenerationAndLifetime(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
 	p, err := New("testdb.db", testKey)
 	assert.Nil(t, err, "New returned an error")
@@ -81,43 +86,47 @@ func TestKeyGenerationAndLifetime(t *testing.T) {
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	assert.Nil(t, err, "An error ocurred generating the key")
+	assert.Nil(t, err, "An error occurred generating the key")
 	assert.NotNil(t, key, "A nil key was returned")
 
 	key2, found, err := s.FindKey("TestKeyGeneration")
 
-	assert.Nil(t, err, "An error ocurred finding the key")
+	assert.Nil(t, err, "An error occurred finding the key")
 	assert.NotNil(t, key2, "A nil key was returned")
 	assert.True(t, found, "The key wasn't found")
 
 	assert.Equal(t, key.ID(), key2.ID())
 
 	err = key2.Destroy()
-	assert.Nil(t, err, "An error ocurred destroying the key")
+	assert.Nil(t, err, "An error occurred destroying the key")
 
 	key3, found, err := s.FindKey("TestKeyGeneration")
 
-	assert.Nil(t, err, "An error ocurred finding the key")
+	assert.Nil(t, err, "An error occurred finding the key")
 	assert.Nil(t, key3, "A nil key was returned")
 	assert.False(t, found, "The key wasn't destroyed")
 
 	err = s.Close()
-	assert.Nil(t, err, "An error ocurred when closing the session")
+	assert.Nil(t, err, "An error occurred when closing the session")
 
 	err = p.Close()
-	assert.Nil(t, err, "An error ocurred when closing the provider")
+	assert.Nil(t, err, "An error occurred when closing the provider")
 }
 
 func TestEcbEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -129,8 +138,8 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Ecb{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -138,8 +147,8 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Ecb{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -148,15 +157,19 @@ func TestEcbEncryptionDecryption(t *testing.T) {
 }
 
 func TestAesEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -168,8 +181,8 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -177,8 +190,8 @@ func TestAesEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -187,15 +200,19 @@ func TestAesEncryptionDecryption(t *testing.T) {
 }
 
 func TestGcmEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -207,9 +224,9 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Gcm{
-		cryptokit.Aes{},
-		[]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-		nil,
+		Underlying:     cryptokit.Aes{},
+		Nonce:          []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+		AdditionalData: nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -217,9 +234,9 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Gcm{
-		cryptokit.Aes{},
-		[]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-		nil,
+		Underlying:     cryptokit.Aes{},
+		Nonce:          []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+		AdditionalData: nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -228,15 +245,19 @@ func TestGcmEncryptionDecryption(t *testing.T) {
 }
 
 func TestDesEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.DesKey,
 		Length:       8,
@@ -248,8 +269,8 @@ func TestDesEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
-		cryptokit.Des{},
-		nil,
+		Underlying: cryptokit.Des{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -257,8 +278,8 @@ func TestDesEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Cbc{
-		cryptokit.Des{},
-		nil,
+		Underlying: cryptokit.Des{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -267,15 +288,19 @@ func TestDesEncryptionDecryption(t *testing.T) {
 }
 
 func TestTdesEncryptionDecryption(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.TdesKey,
 		Length:       24,
@@ -287,8 +312,8 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 	plaintext := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 
 	ciphertext, err := s.Encrypt(cryptokit.Cbc{
-		cryptokit.Tdes{},
-		nil,
+		Underlying: cryptokit.Tdes{},
+		IV:         nil,
 	}, key, plaintext)
 
 	assert.Nil(t, err, "An error during encryption")
@@ -296,8 +321,8 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 	assert.NotEqual(t, ciphertext, plaintext, "Plaintext must be different from ciphertext")
 
 	plaintext2, err := s.Decrypt(cryptokit.Cbc{
-		cryptokit.Tdes{},
-		nil,
+		Underlying: cryptokit.Tdes{},
+		IV:         nil,
 	}, key, ciphertext)
 
 	assert.Nil(t, err, "An error during decryption")
@@ -306,13 +331,17 @@ func TestTdesEncryptionDecryption(t *testing.T) {
 }
 
 func TestSha1(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	plaintext := []byte("lol")
 
@@ -324,13 +353,17 @@ func TestSha1(t *testing.T) {
 }
 
 func TestSha256(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	plaintext := []byte("lol")
 
@@ -342,13 +375,17 @@ func TestSha256(t *testing.T) {
 }
 
 func TestSha512(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
 	plaintext := []byte("lol")
 
@@ -360,15 +397,19 @@ func TestSha512(t *testing.T) {
 }
 
 func TestHmac(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
-	key, err := s.Generate(cryptokit.FixedKey{
+	key, _ := s.Generate(cryptokit.FixedKey{
 		Key: []byte("test"),
 	}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
@@ -391,15 +432,19 @@ func TestHmac(t *testing.T) {
 }
 
 func TestWrapUnwrap(t *testing.T) {
-	defer os.Remove("testdb.db")
+	defer func() {
+		_ = os.Remove("testdb.db")
+	}()
 
-	p, err := New("testdb.db", testKey)
-	s, err := p.OpenSession()
+	p, _ := New("testdb.db", testKey)
+	s, _ := p.OpenSession()
 
-	defer p.Close()
-	defer s.Close()
+	defer func() {
+		_ = p.Close()
+		_ = s.Close()
+	}()
 
-	key, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	key, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -410,7 +455,7 @@ func TestWrapUnwrap(t *testing.T) {
 
 	keyData, _ := key.Extract()
 
-	wrapping, err := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
+	wrapping, _ := s.Generate(cryptokit.Random{}, cryptokit.KeyAttributes{
 		ID:           "WrappingKey",
 		Type:         cryptokit.AesKey,
 		Length:       32,
@@ -420,8 +465,8 @@ func TestWrapUnwrap(t *testing.T) {
 	})
 
 	ciphertext, err := s.Wrap(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, wrapping, key)
 
 	assert.Nil(t, err, "An error during Wrapping")
@@ -429,8 +474,8 @@ func TestWrapUnwrap(t *testing.T) {
 	assert.NotEqual(t, ciphertext, keyData, "Plaintext must be different from ciphertext")
 
 	key2, err := s.Unwrap(cryptokit.Cbc{
-		cryptokit.Aes{},
-		nil,
+		Underlying: cryptokit.Aes{},
+		IV:         nil,
 	}, wrapping, ciphertext, cryptokit.KeyAttributes{
 		ID:           "TestKeyGeneration2",
 		Type:         cryptokit.AesKey,
