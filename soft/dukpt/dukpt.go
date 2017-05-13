@@ -2,6 +2,7 @@ package dukpt
 
 import (
 	"bytes"
+	// #nosec
 	"crypto/des"
 	"encoding/binary"
 	"unsafe"
@@ -136,6 +137,7 @@ func deriveKey(dst, ipek, ksn []byte) error {
 
 	for shiftReg = ShiftRegMask; shiftReg != 0; shiftReg >>= 1 {
 		if shiftReg&counter != 0 {
+			// #nosec
 			ptr := *(*[8]byte)(unsafe.Pointer(&shiftReg))
 
 			reg8[5] |= ptr[2]
@@ -203,6 +205,7 @@ func buildTdesKey(key []byte) []byte {
 }
 
 func tdesEncrypt(dst, data, key []byte) error {
+	// #nosec
 	block, err := des.NewTripleDESCipher(buildTdesKey(key))
 
 	if err != nil {
@@ -215,6 +218,7 @@ func tdesEncrypt(dst, data, key []byte) error {
 }
 
 func desEncrypt(dst, data, key []byte) error {
+	// #nosec
 	block, err := des.NewCipher(key)
 
 	if err != nil {

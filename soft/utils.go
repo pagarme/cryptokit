@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	// #nosec
 	"crypto/des"
 	"crypto/hmac"
 	"errors"
@@ -94,8 +95,10 @@ func getImplementation(mech cryptokit.Mechanism, key cryptokit.Key) (cipher.Bloc
 	case cryptokit.Aes:
 		return aes.NewCipher(skey.data)
 	case cryptokit.Des:
+		// #nosec
 		return des.NewCipher(skey.data)
 	case cryptokit.Tdes:
+		// #nosec
 		return des.NewTripleDESCipher(skey.data)
 	}
 

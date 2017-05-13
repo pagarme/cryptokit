@@ -357,6 +357,7 @@ func extractReader(t *Token, v *io.Reader) error {
 	case StringLiteral:
 		*v = strings.NewReader(t.Text)
 	case PathLiteral:
+		// #nosec
 		file, err := os.OpenFile(t.Text, os.O_RDONLY, 0755)
 
 		if err != nil {
@@ -374,6 +375,7 @@ func extractReader(t *Token, v *io.Reader) error {
 func extractWriter(t *Token, v *io.Writer) error {
 	switch t.Type {
 	case PathLiteral:
+		// #nosec
 		file, err := os.OpenFile(t.Text, os.O_RDWR|os.O_CREATE, 0755)
 
 		if err != nil {

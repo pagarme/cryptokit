@@ -9,6 +9,7 @@ import (
 	"unsafe"
 )
 
+// #nosec
 const wordSize = int(unsafe.Sizeof(uintptr(0)))
 const supportsUnaligned = runtime.GOARCH == "386" || runtime.GOARCH == "amd64" || runtime.GOARCH == "ppc64" || runtime.GOARCH == "ppc64le" || runtime.GOARCH == "s390x"
 
@@ -26,8 +27,11 @@ func safeXORBytes(dst, a, b []byte) int {
 // fastXORWords XORs multiples of 4 or 8 bytes (depending on architecture.)
 // The arguments are assumed to be of equal length.
 func fastXORWords(dst, a, b []byte) {
+	// #nosec
 	dw := *(*[]uintptr)(unsafe.Pointer(&dst))
+	// #nosec
 	aw := *(*[]uintptr)(unsafe.Pointer(&a))
+	// #nosec
 	bw := *(*[]uintptr)(unsafe.Pointer(&b))
 	n := len(b) / wordSize
 	for i := 0; i < n; i++ {
