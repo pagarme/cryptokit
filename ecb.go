@@ -2,7 +2,7 @@ package cryptokit
 
 type Ecb struct {
 	Underlying Mechanism
-	IV []byte
+	IV         []byte
 }
 
 func (c Ecb) Name() string {
