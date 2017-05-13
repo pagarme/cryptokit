@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
 	"github.com/SSSaaS/sssa-golang"
 	"github.com/buger/goterm"
 	"github.com/pagarme/cryptokit/soft/dukpt"
@@ -221,48 +222,48 @@ func deriveBdk(useSss bool) ([]byte, error) {
 		}
 
 		return hex.DecodeString(sssa.Combine(secrets))
-	} else {
-		count := 1
-		bdk := make([]byte, 16)
+	}
 
-		for true {
-			fmt.Printf("Enter key part #%d (empty to end): ", count)
-			part, err := askHex()
+	count := 1
+	bdk := make([]byte, 16)
 
-			if err != nil {
-				return nil, err
-			}
+	for true {
+		fmt.Printf("Enter key part #%d (empty to end): ", count)
+		part, err := askHex()
 
-			if len(part) == 0 {
-				break
-			} else if len(part) != 16 {
-				return nil, errors.New("Key tool small")
-			}
-
-			fmt.Printf("Enter key part #%d KCV: ", count)
-			kcv, err := askHex()
-
-			if err != nil {
-				return nil, err
-			}
-
-			computedKcv, err := dukpt.CalculateKcv(part)
-
-			if !compareKcv(kcv, computedKcv) {
-				return nil, errors.New("Keys doesn't match")
-			}
-
-			if err != nil {
-				return nil, err
-			}
-
-			xorArray(bdk, bdk, part)
-
-			count++
+		if err != nil {
+			return nil, err
 		}
 
-		return bdk, nil
+		if len(part) == 0 {
+			break
+		} else if len(part) != 16 {
+			return nil, errors.New("Key tool small")
+		}
+
+		fmt.Printf("Enter key part #%d KCV: ", count)
+		kcv, err := askHex()
+
+		if err != nil {
+			return nil, err
+		}
+
+		computedKcv, err := dukpt.CalculateKcv(part)
+
+		if !compareKcv(kcv, computedKcv) {
+			return nil, errors.New("Keys doesn't match")
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		xorArray(bdk, bdk, part)
+
+		count++
 	}
+
+	return bdk, nil
 }
 
 func askHex() ([]byte, error) {

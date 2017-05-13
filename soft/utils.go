@@ -7,6 +7,7 @@ import (
 	"crypto/des"
 	"crypto/hmac"
 	"errors"
+
 	"github.com/pagarme/cryptokit"
 )
 
@@ -25,9 +26,9 @@ func processAead(mech cryptokit.Gcm, key cryptokit.Key, in []byte, encrypt bool)
 
 	if encrypt {
 		return aead.Seal(nil, mech.Nonce, in, mech.AdditionalData), nil
-	} else {
-		return aead.Open(nil, mech.Nonce, in, mech.AdditionalData)
 	}
+
+	return aead.Open(nil, mech.Nonce, in, mech.AdditionalData)
 }
 
 func processBlockCipher(mech cryptokit.BlockCipher, key cryptokit.Key, in []byte, encrypt bool) ([]byte, error) {

@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-var EofChar = '\x00'
+var EOFChar = '\x00'
 
 type Scanner struct {
 	reader *bufio.Reader
@@ -38,7 +38,7 @@ func (s *Scanner) Next() (*Token, error) {
 		Start: s.Position(),
 	}
 
-	if s.cur == EofChar {
+	if s.cur == EOFChar {
 		token.Type = EOF
 	} else if unicode.IsSpace(s.cur) {
 		return s.Next()
@@ -235,7 +235,7 @@ func (s *Scanner) nextChar() error {
 	r, _, err := s.reader.ReadRune()
 
 	if err == io.EOF {
-		r = EofChar
+		r = EOFChar
 	} else if err != nil {
 		return err
 	}
