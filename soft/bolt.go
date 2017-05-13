@@ -72,12 +72,12 @@ func (b *boltDatabase) ListKeys() ([]string, error) {
 	err := b.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("keys"))
 
-		_ = b.ForEach(func(k, _ []byte) error {
+		err := b.ForEach(func(k, _ []byte) error {
 			keys = append(keys, string(k))
 			return nil
 		})
 
-		return nil
+		return err
 	})
 
 	if err != nil {

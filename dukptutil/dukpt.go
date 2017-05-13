@@ -78,10 +78,18 @@ func splitBdkSss(ctx climax.Context) int {
 	}
 
 	fmt.Printf("Enter the number of shares: ")
-	fmt.Scanf("%d\n", &shares)
+	_, err = fmt.Scanf("%d\n", &shares)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	fmt.Printf("Enter the minimum number of shares: ")
-	fmt.Scanf("%d\n", &min)
+	_, err = fmt.Scanf("%d\n", &min)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	fmt.Printf("\n")
 
@@ -93,7 +101,11 @@ func splitBdkSss(ctx climax.Context) int {
 		fmt.Printf("Secret #%d: %s\n\n", i, v)
 		fmt.Printf("Write it down as press enter to continue to the next part.\n")
 
-		fmt.Scanf("\n")
+		_, err = fmt.Scanf("\n")
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return -1
+		}
 	}
 
 	clearScreen()
@@ -123,7 +135,11 @@ func splitBdkXor(ctx climax.Context) int {
 	}
 
 	fmt.Printf("Enter the number of shares: ")
-	fmt.Scanf("%d\n", &shares)
+	_, err = fmt.Scanf("%d\n", &shares)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	secrets := make([][]byte, shares)
 	final := make([]byte, 16)
@@ -162,7 +178,11 @@ func splitBdkXor(ctx climax.Context) int {
 		fmt.Printf("Secret #%d: %s (KCV = %s)\n", i, secretStr, kcvStr)
 		fmt.Printf("Write it down as press enter to continue to the next part.\n")
 
-		fmt.Scanf("\n")
+		_, err = fmt.Scanf("\n")
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return -1
+		}
 	}
 
 	clearScreen()
@@ -212,7 +232,11 @@ func deriveBdk(useSss bool) ([]byte, error) {
 			secret := ""
 
 			fmt.Printf("Enter key part #%d (empty to end): ", count)
-			fmt.Scanf("%s\n", &secret)
+			_, err := fmt.Scanf("%s\n", &secret)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				return nil, err
+			}
 
 			if secret == "" {
 				break
@@ -270,7 +294,10 @@ func deriveBdk(useSss bool) ([]byte, error) {
 func askHex() ([]byte, error) {
 	str := ""
 
-	fmt.Scanf("%s\n", &str)
+	_, err := fmt.Scanf("%s\n", &str)
+	if err != nil {
+		return nil, err
+	}
 
 	if str == "" {
 		return []byte{}, nil
