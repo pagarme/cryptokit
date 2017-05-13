@@ -3,6 +3,7 @@ package soft
 import (
 	"crypto/rand"
 	"errors"
+
 	"github.com/pagarme/cryptokit"
 	"github.com/pagarme/cryptokit/soft/dukpt"
 )

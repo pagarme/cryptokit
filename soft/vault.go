@@ -3,8 +3,9 @@ package soft
 import (
 	"encoding/json"
 	"errors"
-	"github.com/hashicorp/vault/api"
 	"path"
+
+	"github.com/hashicorp/vault/api"
 )
 
 type vaultDatabase struct {
