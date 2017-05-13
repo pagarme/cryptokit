@@ -15,7 +15,6 @@ type Scanner struct {
 	la     rune
 	line   int
 	column int
-	eof    bool
 }
 
 func NewScanner(r io.Reader) *Scanner {
