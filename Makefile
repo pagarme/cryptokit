@@ -1,8 +1,10 @@
 travis-deps:
 	@go get github.com/mattn/goveralls
 	@go get github.com/wadey/gocovmerge
+	@go get github.com/alecthomas/gometalinter
 	@curl https://glide.sh/get | sh
-	@glide up
+	@glide install
+	@gometalinter -i
 
 test:
 	@echo Running tests
@@ -12,4 +14,18 @@ test:
 	@gocovmerge `ls *.coverprofile` > coverage.out
 	@rm *.coverprofile
 
-.PHONY: test trevis-deps
+metalinter:
+	@gometalinter \
+		--config gometalinter.json \
+		--cyclo-over 16 \
+		--min-confidence 1.1 \
+		--deadline 120s \
+		$(glide nv)
+
+metalinter-full:
+	@gometalinter \
+		--enable-all \
+		--deadline 120s \
+		$(glide nv)
+
+.PHONY: test trevis-deps metalinter metalinter-full
