@@ -83,7 +83,7 @@ type hashArgs struct {
 
 var session cryptokit.Session
 
-func listKeys(a *findKeyArgs) ([]string, error) {
+func listKeys() ([]string, error) {
 	return session.ListKeys()
 }
 
@@ -174,10 +174,10 @@ func init() {
 
 func main() {
 	usage := `Cryptokit CLI
-	
+
 Usage:
 	ckcli <url>
-	
+
 Options:
 	-h --help	Show this text.
 	--version	Show version.`
