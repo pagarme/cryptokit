@@ -33,14 +33,14 @@ func TestWrongMasterKey(t *testing.T) {
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	assert.Nil(t, err, "An error ocurred generating the key")
+	assert.Nil(t, err, "An error occurred generating the key")
 	assert.NotNil(t, key, "A nil key was returned")
 
 	err = s.Close()
-	assert.Nil(t, err, "An error ocurred when closing the session")
+	assert.Nil(t, err, "An error occurred when closing the session")
 
 	err = p.Close()
-	assert.Nil(t, err, "An error ocurred when closing the provider")
+	assert.Nil(t, err, "An error occurred when closing the provider")
 
 	// Open again, with the wrong key
 	p, err = New("testdb.db", wrongKey)
@@ -58,10 +58,10 @@ func TestWrongMasterKey(t *testing.T) {
 	assert.False(t, found, "The key wasn found")
 
 	err = s.Close()
-	assert.Nil(t, err, "An error ocurred when closing the session")
+	assert.Nil(t, err, "An error occurred when closing the session")
 
 	err = p.Close()
-	assert.Nil(t, err, "An error ocurred when closing the provider")
+	assert.Nil(t, err, "An error occurred when closing the provider")
 }
 
 func TestKeyGenerationAndLifetime(t *testing.T) {
@@ -86,31 +86,31 @@ func TestKeyGenerationAndLifetime(t *testing.T) {
 		Capabilities: cryptokit.AllCapabilities,
 	})
 
-	assert.Nil(t, err, "An error ocurred generating the key")
+	assert.Nil(t, err, "An error occurred generating the key")
 	assert.NotNil(t, key, "A nil key was returned")
 
 	key2, found, err := s.FindKey("TestKeyGeneration")
 
-	assert.Nil(t, err, "An error ocurred finding the key")
+	assert.Nil(t, err, "An error occurred finding the key")
 	assert.NotNil(t, key2, "A nil key was returned")
 	assert.True(t, found, "The key wasn't found")
 
 	assert.Equal(t, key.ID(), key2.ID())
 
 	err = key2.Destroy()
-	assert.Nil(t, err, "An error ocurred destroying the key")
+	assert.Nil(t, err, "An error occurred destroying the key")
 
 	key3, found, err := s.FindKey("TestKeyGeneration")
 
-	assert.Nil(t, err, "An error ocurred finding the key")
+	assert.Nil(t, err, "An error occurred finding the key")
 	assert.Nil(t, key3, "A nil key was returned")
 	assert.False(t, found, "The key wasn't destroyed")
 
 	err = s.Close()
-	assert.Nil(t, err, "An error ocurred when closing the session")
+	assert.Nil(t, err, "An error occurred when closing the session")
 
 	err = p.Close()
-	assert.Nil(t, err, "An error ocurred when closing the provider")
+	assert.Nil(t, err, "An error occurred when closing the provider")
 }
 
 func TestEcbEncryptionDecryption(t *testing.T) {
