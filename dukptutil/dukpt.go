@@ -93,7 +93,11 @@ func splitBdkSss(ctx climax.Context) int {
 
 	fmt.Printf("\n")
 
-	secrets := sssa.Create(min, shares, hex.EncodeToString(bdk))
+	secrets, err := sssa.Create(min, shares, hex.EncodeToString(bdk))
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return -1
+	}
 
 	for i, v := range secrets {
 		clearScreen()
@@ -246,7 +250,12 @@ func deriveBdk(useSss bool) ([]byte, error) {
 			count++
 		}
 
-		return hex.DecodeString(sssa.Combine(secrets))
+		str, err := sssa.Combine(secrets)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return nil, err
+		}
+		return hex.DecodeString(str)
 	}
 
 	count := 1
