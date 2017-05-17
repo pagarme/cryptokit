@@ -1,7 +1,12 @@
 deps:
+	@echo Getting dependencies
 	@go get golang.org/x/tools/cmd/cover
 	@go get github.com/mattn/goveralls
 	@go get github.com/wadey/gocovmerge
+	@go get -t
+	@cd ckcli && go get -t
+	@cd dukptutil && go get -t
+	@cd soft && go get -t
 
 test: deps
 	@echo Running tests
