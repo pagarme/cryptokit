@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/docopt/docopt.go"
+	"github.com/docopt/docopt-go"
 	"github.com/pagarme/cryptokit"
 
 	_ "github.com/pagarme/cryptokit/soft"
